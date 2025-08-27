@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "381972788771",
+    "project_id": "immunicare-a960d",
+    "storage_bucket": "immunicare-a960d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:381972788771:android:643363fc66120b160be396",
+        "android_client_info": {
+          "package_name": "com.capstone.immunicare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSP1BjdShkWlYHoUWhwS9O35-I3r5did8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:381972788771:android:92a76e1268ecc29a0be396",
+        "android_client_info": {
+          "package_name": "com.example.immunicare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSP1BjdShkWlYHoUWhwS9O35-I3r5did8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
