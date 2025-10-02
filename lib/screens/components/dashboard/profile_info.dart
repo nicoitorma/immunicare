@@ -1,65 +1,79 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
+import 'package:immunicare/controllers/auth_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class ProfileInfo extends StatelessWidget {
   const ProfileInfo({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Access AuthViewModel to get user info and handle logout
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(appPadding),
-          child: Stack(
-            children: [
-              SvgPicture.asset(
-                "assets/icons/Bell.svg",
-                height: 25,
-                color: textColor.withValues(alpha: 0.8),
-              ),
-              Positioned(
-                right: 0,
-                child: Container(
-                  height: 10,
-                  width: 10,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: red),
-                ),
-              ),
-            ],
-          ),
-        ),
         Container(
           margin: EdgeInsets.only(left: appPadding),
-          padding: EdgeInsets.symmetric(
-            horizontal: appPadding,
-            vertical: appPadding / 2,
-          ),
+          padding: EdgeInsets.symmetric(vertical: appPadding / 2),
           child: Row(
             children: [
-              ClipRRect(
-                child: Image.asset(
-                  'assets/images/photo3.jpg',
-                  height: 38,
-                  width: 38,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              if (!Responsive.isMobile(context))
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: appPadding / 2,
-                  ),
-                  child: Text(
-                    'Hi, Admin',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w800,
+              PopupMenuButton<String>(
+                color: Colors.white,
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    // Handle profile click
+                    Navigator.pushNamed(context, '/profile');
+                  } else if (value == 'logout') {
+                    authViewModel.signOut();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
+                },
+                itemBuilder:
+                    (context) => [
+                      PopupMenuItem(
+                        value: 'profile',
+                        child: Text('View Profile'),
+                        onTap: () => Navigator.pushNamed(context, '/profile'),
+                      ),
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Text('Logout'),
+                      ),
+                    ],
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Image.network(
+                        width: 38,
+                        height: 38,
+                        fit: BoxFit.cover,
+                        'https://avatar.iran.liara.run/public',
+                      ),
+                      // : Image.network(
+                      //   authViewModel.currentUser!.photoURL!,
+                      //   width: 38,
+                      //   height: 38,
+                      //   fit: BoxFit.cover,
+                      // ),
                     ),
-                  ),
+                    if (!Responsive.isMobile(context))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: appPadding / 2,
+                        ),
+                        child: Text(
+                          'Welcome ${authViewModel.userdata?.firstname} ${authViewModel.userdata?.lastname}',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),

@@ -16,3 +16,33 @@ const red = Colors.red;
 
 // Default App Padding
 const appPadding = 16.0;
+
+final List<String> barangays = [
+  'Baybay (Poblacion)',
+  'Bocon',
+  'Bothoan (Poblacion)',
+  'Buenavista',
+  'Bulalacao',
+  'Camburo',
+  'Dariao',
+  'Datag East',
+  'Datag West',
+  'Guiamlong',
+  'Hitoma',
+  'Icanbato (Poblacion)',
+  'Inalmasinan',
+  'Iyao',
+  'Mabini',
+  'Maui',
+  'Maysuran',
+  'Milaviga',
+  'Panique',
+  'Sabangan',
+  'Sabloyon',
+  'Salvacion',
+  'Supang',
+  'Toytoy (Poblacion)',
+  'Tubli',
+  'Tucao',
+  'Obi',
+];

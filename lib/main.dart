@@ -1,13 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
+import 'package:immunicare/controllers/child_viewmodel.dart';
+import 'package:immunicare/controllers/health_worker/educ_res_viewmodel.dart';
 import 'package:immunicare/controllers/controller.dart';
+import 'package:immunicare/controllers/health_worker/health_worker_viewmodel.dart';
 import 'package:immunicare/screens/auth/login_page.dart';
 import 'package:immunicare/screens/auth/signup_page.dart';
+import 'package:immunicare/screens/components/profile.dart';
+import 'package:immunicare/screens/health_worker/child_repo.dart';
+import 'package:immunicare/screens/health_worker/educational_resources.dart';
+import 'package:immunicare/screens/health_worker/gis_mapping.dart';
+import 'package:immunicare/screens/health_worker/health_workers.dart';
+import 'package:immunicare/screens/health_worker/parents_repo.dart';
 import 'package:immunicare/screens/health_worker/dashboard_screen.dart';
-import 'package:immunicare/screens/health_worker/vaccination_records.dart';
+import 'package:immunicare/screens/health_worker/scheduled.dart';
+import 'package:immunicare/screens/parent/children_list.dart';
 import 'package:immunicare/screens/parent/dashboard.dart';
-import 'package:immunicare/services/user_services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -19,8 +29,40 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // 1. Declare the plugin instance
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications(); // Call the async setup function
+  }
+
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    // Request notification permissions for Android 13+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermission();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,34 +70,46 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthViewModel()),
         ChangeNotifierProvider(create: (context) => Controller()),
+        ChangeNotifierProvider(create: (context) => ChildViewModel()),
+        ChangeNotifierProvider(create: (context) => EducResViewmodel()),
+        ChangeNotifierProvider(create: (context) => HealthWorkerViewmodel()),
       ],
       child: MaterialApp(
         title: 'ImmuniCare',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Poppins',
+        ),
         home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            // Check kung may authenticated user
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
 
-            if (snapshot.hasData) {
+            if (snapshot.hasData && snapshot.data != null) {
               final user = snapshot.data!;
-              return FutureBuilder<String>(
-                future: UserService().getUserRole(user.uid),
-                builder: (context, roleSnapshot) {
-                  if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              final provider = Provider.of<AuthViewModel>(
+                context,
+                listen: false,
+              );
+              provider.fetchUserRole(user.uid);
+              return Consumer<AuthViewModel>(
+                builder: (context, value, _) {
+                  if (value.role == '') {
                     return const Scaffold(
                       body: Center(child: CircularProgressIndicator()),
                     );
                   }
-                  // Check kung may user role
-                  final userRole = roleSnapshot.data;
-                  if (userRole == 'health_worker') {
+
+                  // Once the role is not loading, render the appropriate screen.
+                  final userRole = value.role;
+                  if (userRole == 'health_worker' ||
+                      userRole == 'super_admin') {
                     return const DashBoardScreen();
                   } else {
                     return const ParentDashboard();
@@ -63,13 +117,20 @@ class MyApp extends StatelessWidget {
                 },
               );
             }
-
             return const LoginPage();
           },
         ),
         routes: {
+          '/login': (context) => const LoginPage(),
           '/signup': (context) => const SignUpPage(),
-          '/records': (context) => const VaccinationRecords(),
+          '/children': (context) => const ChildrenList(),
+          '/registered_children': (context) => const ParentsRepo(),
+          '/child_details': (context) => ChildRepo(),
+          '/scheduled': (context) => Scheduled(),
+          '/educational_resources': (context) => EducationalResources(),
+          '/health_workers': (context) => HealthWorkers(),
+          '/profile': (context) => Profile(),
+          '/gis_mapping': (context) => const GisMapping(),
         },
       ),
     );

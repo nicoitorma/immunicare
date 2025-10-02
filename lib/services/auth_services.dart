@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
@@ -20,6 +22,19 @@ class AuthService {
       // Re-throw any other errors.
       throw e;
     }
+  }
+
+  String generateRandomPassword({int length = 8}) {
+    const String chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#&*-_?';
+    final Random random = Random();
+    String password = '';
+
+    for (int i = 0; i < length; i++) {
+      password += chars[random.nextInt(chars.length)];
+    }
+
+    return password;
   }
 
   // Register a new user.

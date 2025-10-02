@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
+import 'package:immunicare/models/user_model.dart';
 import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -15,6 +19,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
 
   @override
   void dispose() {
@@ -27,11 +33,15 @@ class _SignUpPageState extends State<SignUpPage> {
   void _submitSignUp() {
     if (_formKey.currentState!.validate()) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      authViewModel.signUp(
+      UserModel newUser = UserModel(
+        lastname: _lastNameController.text.trim(),
+        firstname: _firstNameController.text.trim(),
+        email: _emailController.text.trim(),
+        address: '',
         role: 'parent',
-        email: _emailController.text,
-        password: _passwordController.text,
+        createdAt: Timestamp.fromDate(DateTime.now()),
       );
+      authViewModel.signUp(user: newUser, password: _passwordController.text);
     }
   }
 
@@ -46,7 +56,7 @@ class _SignUpPageState extends State<SignUpPage> {
             size: iconSize,
             color: Theme.of(context).primaryColor,
           ),
-          const SizedBox(height: 16),
+          const Gap(16),
           Text(
             'Create a New Account',
             style: TextStyle(
@@ -55,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 48),
+          const Gap(48),
           Container(
             width: width,
             padding: const EdgeInsets.all(24.0),
@@ -76,6 +86,42 @@ class _SignUpPageState extends State<SignUpPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextFormField(
+                    controller: _firstNameController,
+                    decoration: InputDecoration(
+                      labelText: 'Firstname',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    keyboardType: TextInputType.name,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your firstname.';
+                      }
+                      return null;
+                    },
+                  ),
+                  Gap(appPadding),
+                  TextFormField(
+                    controller: _lastNameController,
+                    decoration: InputDecoration(
+                      labelText: 'Lastname',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    keyboardType: TextInputType.name,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your lastname.';
+                      }
+                      return null;
+                    },
+                  ),
+                  Gap(appPadding),
+                  TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'Email',
@@ -92,7 +138,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const Gap(16),
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -110,7 +156,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const Gap(16),
                   TextFormField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
@@ -128,7 +174,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const Gap(24),
                   Consumer<AuthViewModel>(
                     builder: (context, authViewModel, _) {
                       if (authViewModel.isLoading) {
@@ -161,7 +207,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       return const SizedBox.shrink();
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const Gap(16),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Already have an account? Login'),
@@ -178,6 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Responsive(
           mobile: _signUpForm(double.infinity, 100),

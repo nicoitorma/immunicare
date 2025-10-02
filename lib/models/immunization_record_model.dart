@@ -1,29 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ImmunizationRecord {
+  final String id;
   final String name;
-  final DateTime? dateAdministered;
-  final bool isAdministered;
+  final DateTime date;
+  final String type; // "vaccine" or "vitamin"
 
   ImmunizationRecord({
+    required this.id,
     required this.name,
-    this.dateAdministered,
-    required this.isAdministered,
+    required this.date,
+    required this.type,
   });
 
-  // Factory constructor to create an object from a Firestore map.
-  factory ImmunizationRecord.fromMap(Map<String, dynamic> data) {
+  factory ImmunizationRecord.fromMap(Map<String, dynamic> data, String id) {
     return ImmunizationRecord(
+      id: id,
       name: data['name'] ?? '',
-      dateAdministered: data['dateAdministered'],
-      isAdministered: data['isAdministered'] ?? false,
+      date: (data['date'] as Timestamp).toDate(),
+      type: data['type'] ?? 'vaccine',
     );
   }
 
-  // Converts the object to a Firestore map.
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'dateAdministered': dateAdministered != null ? dateAdministered! : null,
-      'isAdministered': isAdministered,
-    };
+    return {'name': name, 'date': date, 'type': type};
   }
 }

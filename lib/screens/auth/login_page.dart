@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -43,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
           Icon(
             Icons.local_hospital_rounded,
             size: iconSize,
-            color: Theme.of(context).primaryColor,
+            color: primaryColor,
           ),
           const Gap(16),
           Text(
@@ -173,6 +174,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Responsive(
           // Mobile view: full width

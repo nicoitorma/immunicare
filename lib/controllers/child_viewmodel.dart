@@ -1,122 +1,439 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:immunicare/models/child_model.dart';
-import 'package:immunicare/models/immunization_record_model.dart';
-import 'package:immunicare/services/firestore_services.dart';
+import 'package:immunicare/models/user_model.dart';
+import 'package:immunicare/services/children_services.dart';
 
-// ViewModel to manage child-related operations and state. This is managed using Provider for state management.
-// It interacts with FirestoreService to perform CRUD operations and listens for real-time updates.
-// It is used in the parent account dashboard and vaccination records screens.
 class ChildViewModel extends ChangeNotifier {
-  final FirestoreService _firestoreService = FirestoreService();
+  final ChildrenServices _childrenService = ChildrenServices();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // State variables
-  bool _isLoading = false;
-  String? _errorMessage;
   List<Child> _children = [];
-
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
   List<Child> get children => _children;
+  int childrenCount = 0;
 
-  // Stream subscription to listen for real-time updates.
-  Stream<List<Child>>? _childrenStream;
+  Child? _child;
+  Child? get child => _child;
 
-  // Initializes the stream to listen for child data.
-  void listenToChildren(String parentUid) {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    _childrenStream =
-        _firestoreService
-                .getChildrenForParent(parentUid)
-                .listen(
-                  (children) {
-                    _children = children;
-                    _isLoading = false;
-                    notifyListeners();
-                  },
-                  onError: (e) {
-                    _errorMessage = 'Failed to load children: $e';
-                    _isLoading = false;
-                    notifyListeners();
-                  },
-                )
-            as Stream<List<Child>>?;
-  }
+  String parentUid = '';
 
-  @override
-  void dispose() {
-    _childrenStream = null;
-    _childrenStream?.drain();
-    super.dispose();
-  }
+  List<UserModel> _parents = [];
+  List<UserModel> _filteredParents = [];
+  List<UserModel> get parents => _filteredParents;
 
-  Future<void> signUpChild({
-    required String name,
-    required DateTime dateOfBirth,
-    required String parentUid,
-  }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  List<Map<String, dynamic>> _scheduled = [];
+  List<Map<String, dynamic>> get scheduled => _scheduled;
 
+  void getChildById(String id) {
     try {
-      final String newChildId =
-          FirebaseFirestore.instance.collection('children').doc().id;
-
-      // Define an initial set of vaccines and vitamins.
-      final List<ImmunizationRecord> initialVaccines = [
-        ImmunizationRecord(name: 'BCG', isAdministered: false),
-        ImmunizationRecord(name: 'Polio', isAdministered: false),
-      ];
-      final List<ImmunizationRecord> initialVitamins = [
-        ImmunizationRecord(name: 'Vitamin A', isAdministered: false),
-        ImmunizationRecord(name: 'Vitamin D', isAdministered: false),
-      ];
-
-      final newChild = Child(
-        id: newChildId,
-        name: name,
-        dateOfBirth: dateOfBirth,
-        parentUid: parentUid,
-        vaccines: initialVaccines,
-        vitamins: initialVitamins,
-      );
-
-      await _firestoreService.addChild(newChild);
-
-      _isLoading = false;
-      notifyListeners();
+      _child = _children.firstWhere((child) => child.id == id);
     } catch (e) {
-      _isLoading = false;
-      _errorMessage = 'Failed to sign up child. Please try again.';
+      _child = null;
+    } finally {
       notifyListeners();
     }
   }
 
-  // Method to update the immunization status for a child.
-  Future<void> updateImmunizationStatus({
-    required String childId,
-    required List<ImmunizationRecord> vaccines,
-    required List<ImmunizationRecord> vitamins,
-  }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
+  Future fetchAllParents() async {
     try {
-      await _firestoreService.updateImmunizationStatus(
-        childId,
-        vaccines,
-        vitamins,
-      );
-      _isLoading = false;
+      _filteredParents = await _childrenService.getAllParents();
+      _parents = _filteredParents;
+      notifyListeners();
+    } catch ($e) {
+      print($e);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future fetchChildById(String id) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(parentUid)
+              .collection('children')
+              .doc(id)
+              .get();
+      _child = Child.fromMap(snapshot.data()!, id);
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
-      _errorMessage = 'Failed to update immunization status.';
+      print('Error fetching children: $e');
+    }
+  }
+
+  /**
+   * Used in the parents_repo. args[uid] is from the parent id.
+   * This is called in the health_worker account to fetch all of the children 
+   * under the parent.
+   * */
+  Future<void> fetchAllChildren(String uid) async {
+    if (uid.isEmpty) return;
+    try {
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(uid)
+              .collection('children')
+              .get();
+      _children =
+          snapshot.docs
+              .map((doc) => Child.fromMap(doc.data(), doc.id))
+              .toList();
+      _child = _children.first;
+    } catch (e) {
+      print('Error fetching children: $e');
+    }
+    notifyListeners();
+  }
+
+  void sortParents(String sortBy) {
+    if (sortBy == 'name') {
+      _filteredParents.sort((a, b) => (a.firstname).compareTo(b.firstname));
+    } else if (sortBy == 'address') {
+      _filteredParents.sort((b, a) => a.address.compareTo(b.address));
+    }
+    notifyListeners();
+  }
+
+  void filterParents(String query) {
+    if (query.isEmpty) {
+      _filteredParents = List.from(_parents);
+    } else {
+      _filteredParents =
+          _filteredParents
+              .where(
+                (parent) =>
+                    parent.firstname.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ) ||
+                    parent.lastname.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ) ||
+                    parent.address.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
+    }
+    notifyListeners();
+  }
+
+  Future<void> markAsComplete(
+    String parentUid,
+    Child child,
+    String vaccineName,
+  ) async {
+    final childId = child.id;
+    final childDocRef = _firestore
+        .collection('users')
+        .doc(parentUid)
+        .collection('children')
+        .doc(childId);
+
+    try {
+      final docSnapshot = await childDocRef.get();
+      final childData = docSnapshot.data();
+      if (childData == null || !childData.containsKey('schedule')) {
+        return;
+      }
+
+      List<dynamic> updatedSchedule = List.from(childData['schedule']);
+      bool updated = false;
+
+      for (var ageGroup in updatedSchedule) {
+        if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+          for (var vaccine in ageGroup['vaccines']) {
+            if (vaccine is Map<String, dynamic> &&
+                vaccine['name'] == vaccineName) {
+              vaccine['status'] = 'complete';
+              updated = true;
+              break;
+            }
+          }
+        }
+        if (updated) break;
+      }
+
+      if (updated) {
+        await childDocRef.update({'schedule': updatedSchedule});
+        getScheduledChildrenWithVaccines(DateTime.now());
+      }
+    } catch (e) {
+      print('Error marking vaccine as complete: $e');
+    } finally {
       notifyListeners();
+    }
+  }
+
+  Map<String, dynamic>? nextVaccine(Child child) {
+    if (_child?.id == null) return null;
+    final scheduleData = child.schedule;
+    for (var ageGroup in scheduleData) {
+      if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+        for (var vaccine in ageGroup['vaccines']) {
+          if (vaccine is Map<String, dynamic> &&
+              (vaccine['status'] == 'due' || vaccine['status'] == 'upcoming')) {
+            return vaccine;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  void addChild(
+    String uid,
+    String lastName,
+    String firstName,
+    DateTime dob,
+  ) async {
+    try {
+      // Generate the vaccine schedule based on the child's date of birth
+      final schedule = _generateVaccineSchedule(dob);
+      await _firestore.collection('users').doc(uid).collection('children').add({
+        'lastname': lastName,
+        'firstname': firstName,
+        'dob': Timestamp.fromDate(dob),
+        'schedule': schedule,
+      });
+      fetchChildren();
+    } catch (e) {
+      print('Error adding child: $e');
+    }
+    notifyListeners();
+  }
+
+  /**
+   * This will get the scheduled children with the same date
+   * It will be assigned to the _scheduled variable.
+   */
+  void getScheduledChildrenWithVaccines(DateTime date) async {
+    _scheduled = [];
+    childrenCount = 0;
+    await fetchAllParents();
+
+    // Loop through each parent to correctly fetch and process their children
+    for (var parent in _filteredParents) {
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(parent.id)
+              .collection('children')
+              .get();
+      _children =
+          snapshot.docs
+              .map((doc) => Child.fromMap(doc.data(), doc.id))
+              .toList();
+
+      for (var child in _children) {
+        final scheduleData = child.schedule;
+        childrenCount += 1;
+        for (var ageGroup in scheduleData) {
+          if (ageGroup is Map<String, dynamic> &&
+              ageGroup['vaccines'] is List) {
+            for (var vaccine in ageGroup['vaccines']) {
+              if (vaccine is Map<String, dynamic> &&
+                  vaccine['status'] == 'due') {
+                final vaccineDate = (vaccine['date'] as Timestamp).toDate();
+                if (vaccineDate.year == date.year &&
+                    vaccineDate.month == date.month) {
+                  // Add a map containing the child, vaccine, and parentUid.
+                  _scheduled.add({
+                    'child': child,
+                    'vaccine': vaccine,
+                    'parentUid': parent.id,
+                  });
+                  // We found a due vaccine, no need to check the rest for this child.
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  // Used in the children_list of the parent. THe children is fetch using the authenticated user
+  Future<void> fetchChildren() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(uid)
+              .collection('children')
+              .get();
+      _children =
+          snapshot.docs
+              .map((doc) => Child.fromMap(doc.data(), doc.id))
+              .toList();
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching children: $e');
+    }
+  }
+
+  // --- Business Logic ---
+  // A simple, hardcoded list of vaccines and their age-based due dates.
+  final List<Map<String, dynamic>> _masterVaccineSchedule = [
+    {
+      'age': 'Birth',
+      'vaccines': [
+        {'name': 'BCG', 'due_months': 0},
+        {'name': 'Hepatitis B (HepB)-1', 'due_months': 0},
+      ],
+    },
+    {
+      'age': '1 1/2 months',
+      'vaccines': [
+        {'name': 'Pentavalent (DPT-Hep B-HiB)-1', 'due_months': 1.5},
+        {'name': 'Oral Polio Vaccine (OPV)-1', 'due_months': 1.5},
+        {'name': 'Pneumococcal conjugate (PCV)-1', 'due_months': 1.5},
+      ],
+    },
+    {
+      'age': '2 1/2 months',
+      'vaccines': [
+        {'name': 'Pentavalent (DPT-Hep B-HiB)-2', 'due_months': 2.5},
+        {'name': 'Oral Polio Vaccine (OPV)-2', 'due_months': 2.5},
+        {'name': 'Pneumococcal conjugate (PCV)-2', 'due_months': 2.5},
+      ],
+    },
+    {
+      'age': '3 1/3 months',
+      'vaccines': [
+        {'name': 'Pentavalent (DPT-Hep B-HiB)-3', 'due_months': 3.3},
+        {'name': 'Oral Polio Vaccine (OPV)-3', 'due_months': 3.3},
+        {'name': 'Pneumococcal conjugate (PCV)-3', 'due_months': 3.3},
+        {'name': 'Inactivated Polio Vaccine (OPV)-1', 'due_months': 3.3},
+      ],
+    },
+    {
+      'age': '9 months',
+      'vaccines': [
+        {'name': 'Inactivated Polio Vaccine (OPV)-2', 'due_months': 9},
+        {'name': 'Measles, Mumps, Rubella (MMR)-1', 'due_months': 9},
+      ],
+    },
+    {
+      'age': '6-11 months',
+      'vaccines': [
+        {'name': 'Vitamin A', 'due_months': 11},
+      ],
+    },
+    {
+      'age': '12 months',
+      'vaccines': [
+        {'name': 'Measles, Mumps, Rubella (MMR)-2', 'due_months': 12},
+      ],
+    },
+  ];
+
+  List<Map<String, dynamic>> _generateVaccineSchedule(DateTime dob) {
+    final List<Map<String, dynamic>> schedule = [];
+
+    final now = DateTime.now();
+
+    for (var ageGroup in _masterVaccineSchedule) {
+      final List<Map<String, dynamic>> vaccinesForAgeGroup = [];
+      final double dueMonths =
+          (ageGroup['vaccines'][0]['due_months'] as num).toDouble();
+
+      final int wholeMonths = dueMonths.floor();
+      final double fractionalMonths = dueMonths - wholeMonths;
+      final int extraDays = (fractionalMonths * 30).round();
+      DateTime dueDate = DateTime(dob.year, dob.month + wholeMonths, dob.day);
+      dueDate = dueDate.add(Duration(days: extraDays));
+      final status = dueDate.isBefore(now) ? 'due' : 'upcoming';
+
+      for (var vaccine in ageGroup['vaccines']) {
+        vaccinesForAgeGroup.add({
+          'name': vaccine['name'],
+          'status': status,
+          'date': Timestamp.fromDate(dueDate),
+        });
+      }
+      schedule.add({'age': ageGroup['age'], 'vaccines': vaccinesForAgeGroup});
+    }
+
+    return schedule;
+  }
+
+  int calculateAgeInMonths(Timestamp dobTimestamp) {
+    final dob = dobTimestamp.toDate();
+    final now = DateTime.now();
+
+    int years = now.year - dob.year;
+    int months = now.month - dob.month;
+    if (now.day < dob.day) {
+      months--;
+    }
+    return (years * 12) + months;
+  }
+
+  double calculateProgress(Timestamp dueDate) {
+    final now = DateTime.now();
+    final due = dueDate.toDate();
+    final totalTime = due.difference(now).inDays;
+    final progress = (90 - totalTime) / 90;
+    return progress.clamp(0.0, 1.0);
+  }
+
+  Future<void> updateVaccineDate(
+    String parentUid,
+    Child child,
+    String vaccineName,
+    DateTime newDate,
+  ) async {
+    final childId = child.id;
+    final childDocRef = _firestore
+        .collection('users')
+        .doc(parentUid)
+        .collection('children')
+        .doc(childId);
+
+    try {
+      final docSnapshot = await childDocRef.get();
+      final childData = docSnapshot.data();
+
+      if (childData == null || !childData.containsKey('schedule')) {
+        print('Schedule data not found for child: $childId');
+        return;
+      }
+
+      List<dynamic> updatedSchedule = List.from(childData['schedule']);
+      bool updated = false;
+
+      for (var ageGroup in updatedSchedule) {
+        if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+          for (var vaccine in ageGroup['vaccines']) {
+            if (vaccine is Map<String, dynamic> &&
+                vaccine['name'] == vaccineName) {
+              vaccine['date'] = Timestamp.fromDate(newDate);
+              updated = true;
+              break;
+            }
+          }
+        }
+        if (updated) break;
+      }
+
+      if (updated) {
+        await childDocRef.update({'schedule': updatedSchedule});
+        getScheduledChildrenWithVaccines(DateTime.now());
+      } else {
+        print('Vaccine $vaccineName not found.');
+      }
+    } catch (e) {
+      print('Error updating vaccine date: $e');
     }
   }
 }

@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tubli",
+        "coverage": 92.5,
+        "target_pop": 500
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.1, 14.02],
+            [124.12, 14.02],
+            [124.12, 14.04],
+            [124.1, 14.04],
+            [124.1, 14.02]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Toytoy",
+        "coverage": 70.0,
+        "target_pop": 800
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.13, 14.02],
+            [124.15, 14.02],
+            [124.15, 14.04],
+            [124.13, 14.04],
+            [124.13, 14.02]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dariao",
+        "coverage": 55.0,
+        "target_pop": 1200
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.13, 13.98],
+            [124.15, 13.98],
+            [124.15, 14.0],
+            [124.13, 14.0],
+            [124.13, 13.98]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Baybay",
+        "coverage": 85.0,
+        "target_pop": 600
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [124.1, 13.98],
+            [124.12, 13.98],
+            [124.12, 14.0],
+            [124.1, 14.0],
+            [124.1, 13.98]
+          ]
+        ]
+      }
+    }
+  ]
+}

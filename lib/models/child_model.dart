@@ -1,54 +1,38 @@
-import 'package:immunicare/models/immunization_record_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Child {
   final String id;
-  final String name;
-  final DateTime dateOfBirth;
-  final String parentUid;
-  final List<ImmunizationRecord> vaccines;
-  final List<ImmunizationRecord> vitamins;
+  final String lastname;
+  final String firstname;
+  final Timestamp dateOfBirth;
+  final List schedule;
 
   Child({
     required this.id,
-    required this.name,
+    required this.lastname,
+    required this.firstname,
     required this.dateOfBirth,
-    required this.parentUid,
-    required this.vaccines,
-    required this.vitamins,
+    required this.schedule,
   });
 
-  // Factory constructor to create a Child from a Firestore document.
+  // Factory constructor to create a Child from Firestore document.
   factory Child.fromMap(Map<String, dynamic> data, String id) {
     return Child(
       id: id,
-      name: data['name'] ?? '',
-      dateOfBirth: data['dateOfBirth'],
-      parentUid: data['parentUid'] ?? '',
-      vaccines:
-          (data['vaccines'] as List<dynamic>?)
-              ?.map(
-                (v) => ImmunizationRecord.fromMap(v as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
-      vitamins:
-          (data['vitamins'] as List<dynamic>?)
-              ?.map(
-                (v) => ImmunizationRecord.fromMap(v as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
+      lastname: data['lastname'] ?? '',
+      firstname: data['firstname'] ?? '',
+      dateOfBirth: data['dob'] ?? '',
+      schedule: data['schedule'] ?? [],
     );
   }
 
   // Converts a Child object into a map for Firestore.
   Map<String, dynamic> toMap() {
     return {
-      'name': name,
-      'dateOfBirth': dateOfBirth,
-      'parentUid': parentUid,
-      'vaccines': vaccines.map((v) => v.toMap()).toList(),
-      'vitamins': vitamins.map((v) => v.toMap()).toList(),
+      'lastname': lastname,
+      'firstname': firstname,
+      'dob': dateOfBirth,
+      'schedule': schedule,
     };
   }
 }

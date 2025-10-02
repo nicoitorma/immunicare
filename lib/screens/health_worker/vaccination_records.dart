@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
-import 'package:immunicare/controllers/controller.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
 import 'package:immunicare/screens/components/dashboard/drawer_menu.dart';
-import 'package:provider/provider.dart';
 
 class VaccinationRecords extends StatefulWidget {
   const VaccinationRecords({super.key});
@@ -23,7 +21,6 @@ class _VaccinationRecordsState extends State<VaccinationRecords> {
           Responsive.isMobile(context)
               ? DrawerMenu()
               : null, // Only show drawer on mobile
-      key: context.read<Controller>().scaffoldKey,
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,27 +1,42 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:immunicare/models/user_model.dart';
 import 'package:immunicare/services/auth_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseAuth get auth => FirebaseAuth.instance;
 
   bool _isLoading = false;
   String? _errorMessage;
   User? _currentUser;
+  UserModel? _userdata;
+  String _role = '';
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   User? get currentUser => _currentUser;
+  UserModel? get userdata => _userdata;
+  String get role => _role;
 
   AuthViewModel() {
-    // Listen to Firebase Auth state changes.
-    // This keeps the _currentUser state up-to-date in real-time.
-    FirebaseAuth.instance.authStateChanges().listen((user) {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
       _currentUser = user;
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('uid', user.uid);
+        await getUserData();
+      }
+      print('Auth: complete');
       notifyListeners();
     });
+    notifyListeners();
   }
 
   Future<void> signIn({required String email, required String password}) async {
@@ -30,53 +45,61 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      _isLoading = false;
-      // No need to set _currentUser here, the authStateChanges listener will handle it.
+      final UserCredential userCredential = await _authService
+          .signInWithEmailAndPassword(email: email, password: password);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        if (email == 'superadmin@immunicare.com') {
+          return;
+        }
+        await user.reload();
+
+        // if (user.emailVerified) {
+        //   _errorMessage = null;
+        // } else {
+        //   await user.sendEmailVerification();
+        //   signOut();
+        //   throw FirebaseAuthException(
+        //     code: 'email-not-verified',
+        //     message:
+        //         'Your email is not verified. A new verification link has been sent.',
+        //   );
+        // }
+      }
     } on FirebaseAuthException catch (e) {
-      _isLoading = false;
       if (e.code == 'user-not-found') {
         _errorMessage = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         _errorMessage = 'Wrong password provided.';
+      } else if (e.code == 'email-not-verified') {
+        _errorMessage = e.message;
       } else {
-        _errorMessage = 'Login failed: ${e.message}';
+        _errorMessage = e.message ?? 'An unknown error occurred.';
       }
     } catch (e) {
-      _isLoading = false;
       _errorMessage = 'An unexpected error occurred. Please try again.';
+      print(e);
     } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // New method to create a user document in Firestore after sign-up
-  Future<void> _createUserDocument({
-    required String uid,
-    required String email,
-    required String role,
-  }) async {
+  Future getUserData() async {
     try {
-      await _firestore.collection('users').doc(uid).set({
-        'uid': uid,
-        'email': email,
-        'role': role,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final doc =
+          await _firestore.collection('users').doc(_currentUser!.uid).get();
+      _userdata = UserModel.fromMap(doc.data()!, _currentUser!.uid);
     } catch (e) {
-      print('Error creating user document: $e');
-      _errorMessage = 'Failed to save user data. Please try again.';
-      notifyListeners();
+      print(e);
     }
+    notifyListeners();
   }
 
   Future<void> signUp({
-    required String email,
+    required UserModel user,
     required String password,
-    required String role, // New parameter to pass the selected role
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -84,22 +107,19 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       final userCredential = await _authService.signUpWithEmailAndPassword(
-        email: email,
+        email: user.email,
         password: password,
       );
 
-      // After successful authentication, store the role in Firestore
       if (userCredential.user != null) {
-        await _createUserDocument(
-          uid: userCredential.user!.uid,
-          email: email,
-          role: role,
-        );
+        _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(user.toMap());
+        userCredential.user!.sendEmailVerification();
+        await fetchUserRole(userCredential.user!.uid);
       }
-
-      _isLoading = false;
     } on FirebaseAuthException catch (e) {
-      _isLoading = false;
       if (e.code == 'weak-password') {
         _errorMessage = 'The password is too weak.';
       } else if (e.code == 'email-already-in-use') {
@@ -108,14 +128,62 @@ class AuthViewModel extends ChangeNotifier {
         _errorMessage = 'Sign up failed: ${e.message}';
       }
     } catch (e) {
-      _isLoading = false;
       _errorMessage = 'An unexpected error occurred. Please try again.';
     } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
+  Future fetchUserRole(String uid) async {
+    if (uid.isEmpty) return '';
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        _role = doc.data()?['role'] ?? '';
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching user role: $e');
+    }
+  }
+
   Future<void> signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Remove the UID
+    await prefs.remove('uid');
+    _role = '';
+    _userdata = null;
     await _authService.signOut();
+  }
+
+  Future updatePersonalInfo(String firstname, lastname, address) async {
+    try {
+      await _firestore.collection('users').doc(currentUser!.uid).update({
+        'firstname': firstname,
+        'lastname': lastname,
+        'address': address,
+      });
+    } catch (e) {
+      print('error updating personal info: $e');
+    }
+  }
+
+  Future uploadProfilePhoto(File image) async {
+    try {
+      final storage = FirebaseStorage.instance;
+      final Reference ref = storage.ref().child(
+        'images/${auth.currentUser!.uid}.jpg',
+      );
+      await ref.putFile(image);
+      auth.currentUser!.updatePhotoURL(await ref.getDownloadURL());
+      return true;
+    } on FirebaseException catch (e) {
+      throw e;
+    } catch (err) {
+      throw err;
+    } finally {
+      notifyListeners();
+    }
   }
 }

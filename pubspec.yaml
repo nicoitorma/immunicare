@@ -35,6 +35,16 @@ dependencies:
   cloud_firestore:
   firebase_auth:
   firebase_core: ^4.0.0
+  shared_preferences:
+  firebase_ui_auth:
+  firebase_storage:
+  image_picker:
+  intl:
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  flutter_map_geojson:
+  flutter_local_notifications: ^14.0.0
+  # geocoding: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +67,12 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
