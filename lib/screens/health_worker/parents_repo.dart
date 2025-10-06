@@ -22,7 +22,7 @@ class _ParentsRepoState extends State<ParentsRepo> {
   void initState() {
     super.initState();
     final provider = Provider.of<ChildViewModel>(context, listen: false);
-    provider.fetchAllParents();
+    provider.getAllParents();
   }
 
   @override
@@ -59,6 +59,7 @@ class _ParentsRepoState extends State<ParentsRepo> {
                               Text('Sort by:'),
                               Gap(8),
                               DropdownButton<String>(
+                                dropdownColor: Colors.white,
                                 value: _selectedSortOption,
                                 items: [
                                   DropdownMenuItem(
@@ -84,9 +85,15 @@ class _ParentsRepoState extends State<ParentsRepo> {
                           Gap(appPadding),
                           ListView.builder(
                             shrinkWrap: true,
-                            itemCount: value.parents.length,
+                            itemCount:
+                                value.filteredParents.length > 0
+                                    ? value.filteredParents.length
+                                    : value.parents.length,
                             itemBuilder: (context, index) {
-                              final parent = value.parents[index];
+                              final parent =
+                                  value.filteredParents.isNotEmpty
+                                      ? value.filteredParents[index]
+                                      : value.parents[index];
                               return Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: _ParentChildrenExpansionTile(
@@ -152,15 +159,20 @@ class _ParentChildrenExpansionTileState
           Provider.of<ChildViewModel>(
             context,
             listen: false,
-          ).fetchAllChildren(widget.parent.id ?? '');
+          ).getChildrenByParentId(widget.parent.id ?? '');
         }
       },
       children: [
         if (_isExpanded)
           Consumer<ChildViewModel>(
-            builder: (context, ChildViewModel, _) {
-              ChildViewModel.parentUid = widget.parent.id ?? '';
-              if (ChildViewModel.children.isEmpty) {
+            builder: (context, childViewModel, _) {
+              // Retrieve the specific list of children for *this* parent ID
+              final children = childViewModel.getChildrenForParent(
+                widget.parent.id ?? '',
+              );
+
+              if (children.isEmpty) {
+                // Check for null or empty list. You might want to also check for a loading state.
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
@@ -171,16 +183,17 @@ class _ParentChildrenExpansionTileState
               return ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: ChildViewModel.children.length,
+                itemCount: children.length, // Use the specific children list
                 itemBuilder: (context, index) {
-                  final child = ChildViewModel.children[index];
+                  final child = children[index];
                   return Card(
                     color: Color.fromARGB(179, 195, 218, 238),
                     child: ListTile(
                       title: Text('${child.firstname} ${child.lastname}'),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onTap: () {
-                        ChildViewModel.getChildById(child.id);
+                        // Ensure your view model method can use the child's data even if it's from the map
+                        childViewModel.getChildById(childId: child.id);
                         Navigator.pushNamed(context, '/child_details');
                       },
                     ),

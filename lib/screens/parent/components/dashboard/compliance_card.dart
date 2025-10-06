@@ -70,7 +70,7 @@ class ComplianceCard extends StatelessWidget {
                 value: value.child?.id ?? value.children.first.id,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
-                    value.getChildById(newValue);
+                    // value.getChildById(newValue);
                   }
                 },
                 items:

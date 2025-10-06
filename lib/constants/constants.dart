@@ -46,3 +46,59 @@ final List<String> barangays = [
   'Tucao',
   'Obi',
 ];
+
+// --- Business Logic ---
+// A simple, hardcoded list of vaccines and their age-based due dates.
+final List<Map<String, dynamic>> masterVaccineSchedule = [
+  {
+    'age': 'Birth',
+    'vaccines': [
+      {'name': 'BCG', 'due_months': 0},
+      {'name': 'Hepatitis B (HepB)-1', 'due_months': 0},
+    ],
+  },
+  {
+    'age': '1 1/2 months',
+    'vaccines': [
+      {'name': 'Pentavalent (DPT-Hep B-HiB)-1', 'due_months': 1.5},
+      {'name': 'Oral Polio Vaccine (OPV)-1', 'due_months': 1.5},
+      {'name': 'Pneumococcal conjugate (PCV)-1', 'due_months': 1.5},
+    ],
+  },
+  {
+    'age': '2 1/2 months',
+    'vaccines': [
+      {'name': 'Pentavalent (DPT-Hep B-HiB)-2', 'due_months': 2.5},
+      {'name': 'Oral Polio Vaccine (OPV)-2', 'due_months': 2.5},
+      {'name': 'Pneumococcal conjugate (PCV)-2', 'due_months': 2.5},
+    ],
+  },
+  {
+    'age': '3 1/3 months',
+    'vaccines': [
+      {'name': 'Pentavalent (DPT-Hep B-HiB)-3', 'due_months': 3.3},
+      {'name': 'Oral Polio Vaccine (OPV)-3', 'due_months': 3.3},
+      {'name': 'Pneumococcal conjugate (PCV)-3', 'due_months': 3.3},
+      {'name': 'Inactivated Polio Vaccine (OPV)-1', 'due_months': 3.3},
+    ],
+  },
+  {
+    'age': '9 months',
+    'vaccines': [
+      {'name': 'Inactivated Polio Vaccine (OPV)-2', 'due_months': 9},
+      {'name': 'Measles, Mumps, Rubella (MMR)-1', 'due_months': 9},
+    ],
+  },
+  {
+    'age': '6-11 months',
+    'vaccines': [
+      {'name': 'Vitamin A', 'due_months': 11},
+    ],
+  },
+  {
+    'age': '12 months',
+    'vaccines': [
+      {'name': 'Measles, Mumps, Rubella (MMR)-2', 'due_months': 12},
+    ],
+  },
+];

@@ -43,6 +43,7 @@ dependencies:
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   flutter_map_geojson:
+  flutter_login: ^6.0.0
   # flutter_local_notifications:
   # geocoding: ^2.2.1
 

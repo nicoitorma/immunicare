@@ -58,7 +58,7 @@ class _ChildrenListState extends State<ChildrenList> {
     super.initState();
     final provider = Provider.of<ChildViewModel>(context, listen: false);
     final authProv = Provider.of<AuthViewModel>(context, listen: false);
-    provider.fetchAllChildren(authProv.currentUser?.uid ?? '');
+    provider.getChildrenForParent(authProv.currentUser?.uid ?? '');
   }
 
   @override

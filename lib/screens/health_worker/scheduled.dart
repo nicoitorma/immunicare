@@ -42,7 +42,6 @@ class _ScheduledState extends State<Scheduled> {
                               shrinkWrap: true,
                               itemCount: value.scheduled.length,
                               itemBuilder: (context, index) {
-                                print(value.scheduled[index]);
                                 final data = value.scheduled[index];
                                 final dueDateTime =
                                     (data['vaccine']['date'] as Timestamp)
@@ -192,7 +191,7 @@ class _ScheduledState extends State<Scheduled> {
                                               ),
                                               onPressed: () {
                                                 value.markAsComplete(
-                                                  data['parentUid'],
+                                                  data['parentId'],
                                                   data['child'],
                                                   data['vaccine']['name'],
                                                 );
@@ -240,7 +239,7 @@ class _ScheduledState extends State<Scheduled> {
                                                     );
                                                 if (newDate != null) {
                                                   value.updateVaccineDate(
-                                                    data['parentUid'],
+                                                    data['parentId'],
                                                     data['child'],
                                                     data['vaccine']['name'],
                                                     newDate,

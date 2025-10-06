@@ -84,6 +84,21 @@ class HealthWorkerViewmodel extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).delete();
+      final index = _health_workers.indexWhere((doc) => doc.id == userId);
+
+      if (index != -1) {
+        _health_workers.removeAt(index);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      notifyListeners();
+    }
+  }
+
   Future deleteArticle(String docId) async {
     try {
       _firestore.collection('educationals').doc(docId).delete();

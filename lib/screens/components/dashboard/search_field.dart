@@ -21,7 +21,7 @@ class _SearchFieldState extends State<SearchField> {
 
   void _onSearchChanged() {
     final viewModel = Provider.of<ChildViewModel>(context, listen: false);
-    viewModel.filterParents(_searchController.text.trim());
+    viewModel.searchParent(_searchController.text.trim());
   }
 
   @override

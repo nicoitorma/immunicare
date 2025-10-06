@@ -5,6 +5,7 @@ class Child {
   final String lastname;
   final String firstname;
   final Timestamp dateOfBirth;
+  final String parentId;
   final List schedule;
 
   Child({
@@ -12,6 +13,7 @@ class Child {
     required this.lastname,
     required this.firstname,
     required this.dateOfBirth,
+    required this.parentId,
     required this.schedule,
   });
 
@@ -22,6 +24,7 @@ class Child {
       lastname: data['lastname'] ?? '',
       firstname: data['firstname'] ?? '',
       dateOfBirth: data['dob'] ?? '',
+      parentId: data['parentId'] ?? '',
       schedule: data['schedule'] ?? [],
     );
   }
@@ -32,6 +35,7 @@ class Child {
       'lastname': lastname,
       'firstname': firstname,
       'dob': dateOfBirth,
+      'parentId': parentId,
       'schedule': schedule,
     };
   }

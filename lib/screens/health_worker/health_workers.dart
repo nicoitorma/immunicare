@@ -242,8 +242,31 @@ class _HealthWorkersState extends State<HealthWorkers> {
   // }
 
   void _deleteUser(UserModel user) {
-    // Implement your delete logic here
-    print('Deleting user: ${user.firstname} ${user.lastname}');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text('Delete ${user.firstname}?'),
+          content: Text('Are you sure you want to delete this user?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                healthWorkerProv?.deleteUser(user.id!);
+                Navigator.of(context).pop();
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _editUserRole(UserModel user) {

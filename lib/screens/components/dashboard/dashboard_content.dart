@@ -22,8 +22,10 @@ class _DashboardContentState extends State<DashboardContent> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
+
+      await provider.getAllChildren();
       provider.getScheduledChildrenWithVaccines(DateTime.now());
     });
   }
@@ -58,7 +60,7 @@ class _DashboardContentState extends State<DashboardContent> {
                                         ),
                                     info: AnalyticInfo(
                                       title: "Children Registered",
-                                      count: value.childrenCount,
+                                      count: value.children.length,
                                       svgSrc: "assets/icons/Subscribers.svg",
                                       color: primaryColor,
                                     ),

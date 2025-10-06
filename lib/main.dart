@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
                 },
               );
             }
-            return const LoginPage();
+            return LoginPage();
           },
         ),
         routes: {
@@ -129,6 +129,8 @@ class _MyAppState extends State<MyApp> {
           '/educational_resources': (context) => EducationalResources(),
           '/health_workers': (context) => HealthWorkers(),
           '/profile': (context) => Profile(),
+          '/parentDashboard': (context) => const ParentDashboard(),
+          '/healthWorkerDashboard': (context) => const DashBoardScreen(),
           '/gis_mapping': (context) => const GisMapping(),
         },
       ),

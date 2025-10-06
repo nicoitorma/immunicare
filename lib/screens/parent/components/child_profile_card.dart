@@ -60,7 +60,7 @@ class ChildProfileCard extends StatelessWidget {
                 value: viewModel.child?.id ?? viewModel.children.first.id,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
-                    viewModel.getChildById(newValue);
+                    viewModel.getChildById(childId: newValue);
                   }
                 },
                 items:

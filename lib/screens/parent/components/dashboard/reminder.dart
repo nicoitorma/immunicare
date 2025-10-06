@@ -12,6 +12,26 @@ class RemindersCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ChildViewModel>(
       builder: (context, value, child) {
+        if (value.children.isEmpty) {
+          return Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 4,
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                // Display a loading indicator or a message
+                child: Text(
+                  'Loading children data or no children registered...',
+                ),
+              ),
+            ),
+          );
+        }
+        final selectedChildId = value.child?.id ?? value.children.first.id;
+
         // Only display the card if a child is actively selected
         final nextReminder = value.nextVaccination;
         final String vaccineName = nextReminder?['name'] ?? 'No Due Vaccine';
@@ -19,7 +39,7 @@ class RemindersCard extends StatelessWidget {
             nextReminder != null
                 ? DateFormat('MMMM d, y').format(nextReminder['date'].toDate())
                 : 'No Date Set';
-        // -
+
         return Card(
           color: Colors.white,
           shape: RoundedRectangleBorder(
@@ -46,11 +66,12 @@ class RemindersCard extends StatelessWidget {
                     Text('Select Child:'),
                     Gap(appPadding),
                     DropdownButton<String>(
+                      dropdownColor: Colors.white,
                       style: TextStyle(overflow: TextOverflow.ellipsis),
-                      value: value.child?.id ?? value.children.first.id,
+                      value: selectedChildId,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          value.getChildById(newValue);
+                          value.getChildById(childId: newValue);
                         }
                       },
                       items:

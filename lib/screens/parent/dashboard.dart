@@ -27,7 +27,9 @@ class _ParentDashboardState extends State<ParentDashboard> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
-      provider.fetchChildren();
+      final authProvider = Provider.of<AuthViewModel>(context, listen: false);
+      provider.parentUid = authProvider.currentUser?.uid ?? '';
+      provider.getChildrenByParentId(provider.parentUid);
     });
   }
 
@@ -81,7 +83,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                             AnalyticInfoCard(
                                               info: AnalyticInfo(
                                                 title:
-                                                    "${value.child?.firstname} Compliance Rate (%)",
+                                                    value
+                                                                .child
+                                                                ?.firstname
+                                                                .isNotEmpty ==
+                                                            true
+                                                        ? "${value.child?.firstname} Compliance rate (%)"
+                                                        : "Compliance Rate (%)",
+
                                                 count:
                                                     (value.complianceScore *
                                                             100)
