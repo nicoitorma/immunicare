@@ -186,6 +186,22 @@ class ChildViewModel extends ChangeNotifier {
     return null;
   }
 
+  Map<String, dynamic>? get nextVaccination {
+    if (_child?.id == null) return null;
+    final scheduleData = _child!.schedule;
+    for (var ageGroup in scheduleData) {
+      if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+        for (var vaccine in ageGroup['vaccines']) {
+          if (vaccine is Map<String, dynamic> &&
+              (vaccine['status'] == 'due' || vaccine['status'] == 'upcoming')) {
+            return vaccine;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   void addChild(
     String uid,
     String lastName,
@@ -435,5 +451,66 @@ class ChildViewModel extends ChangeNotifier {
     } catch (e) {
       print('Error updating vaccine date: $e');
     }
+  }
+
+  double get complianceScore {
+    if (_child == null || _child!.schedule.isEmpty) {
+      return 0.0;
+    }
+
+    int totalVaccines = 0;
+    int completedVaccines = 0;
+
+    for (var ageGroup in _child!.schedule) {
+      if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+        for (var vaccine in ageGroup['vaccines']) {
+          if (vaccine is Map<String, dynamic>) {
+            // Only count vaccines that are due or completed. Ignore "upcoming" for current compliance.
+            if (vaccine['status'] == 'complete' || vaccine['status'] == 'due') {
+              totalVaccines++;
+              if (vaccine['status'] == 'complete') {
+                completedVaccines++;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (totalVaccines == 0) return 1.0;
+
+    return completedVaccines / totalVaccines;
+  }
+
+  double _calculateComplianceForList() {
+    if (children.isEmpty) return 0.0;
+
+    int totalCompleted = 0;
+    int totalScheduled = 0;
+
+    for (var childItem in children) {
+      for (var ageGroup in childItem.schedule) {
+        if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+          for (var vaccine in ageGroup['vaccines']) {
+            if (vaccine is Map<String, dynamic>) {
+              totalScheduled++;
+              if (vaccine['status'] == 'complete') {
+                totalCompleted++;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (totalScheduled == 0) return 0.0;
+
+    // Return compliance score as a percentage (0.0 to 100.0)
+    return (totalCompleted / totalScheduled) * 100;
+  }
+
+  /// Calculates the overall vaccination compliance across ALL fetched children.
+  double get overallComplianceScore {
+    return _calculateComplianceForList();
   }
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
+import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/models/analytic_info_model.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_cards.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_info_card.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
 import 'package:immunicare/screens/components/dashboard/drawer_menu.dart';
+import 'package:immunicare/screens/parent/components/dashboard/compliance_card.dart';
 import 'package:immunicare/screens/parent/components/dashboard/educational_hub.dart';
 import 'package:immunicare/screens/parent/components/dashboard/reminder.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +27,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
-      provider.getScheduledChildrenWithVaccines(DateTime.now());
+      provider.fetchChildren();
     });
   }
 
@@ -78,8 +80,12 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                             ),
                                             AnalyticInfoCard(
                                               info: AnalyticInfo(
-                                                title: "My Appointments",
-                                                count: 720,
+                                                title:
+                                                    "${value.child?.firstname} Compliance Rate (%)",
+                                                count:
+                                                    (value.complianceScore *
+                                                            100)
+                                                        .round(),
                                                 svgSrc:
                                                     "assets/icons/Calendar.svg",
                                                 color: purple,
@@ -94,7 +100,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                           children: [
                                             Expanded(
                                               flex: 2,
-                                              child: Reminders(),
+                                              child: RemindersCard(),
                                             ),
                                             if (!Responsive.isMobile(context))
                                               Gap(appPadding),
@@ -102,8 +108,9 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                               Expanded(child: EducationalHub()),
                                           ],
                                         ),
-                                        if (Responsive.isMobile(context))
-                                          Gap(appPadding),
+                                        Gap(appPadding),
+                                        ComplianceCard(),
+                                        Gap(appPadding),
                                         if (Responsive.isMobile(context))
                                           EducationalHub(),
                                       ],
@@ -111,6 +118,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                   ),
                                 ],
                               ),
+
                               // if (Responsive.isMobile(context)) UsersByDevice(),
                             ],
                           ),

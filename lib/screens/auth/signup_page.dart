@@ -51,10 +51,10 @@ class _SignUpPageState extends State<SignUpPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.medical_services_outlined,
-            size: iconSize,
-            color: Theme.of(context).primaryColor,
+          Image.asset(
+            'assets/icons/immunicare.png',
+            width: iconSize,
+            height: iconSize,
           ),
           const Gap(16),
           Text(

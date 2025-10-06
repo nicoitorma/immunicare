@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/controllers/health_worker/educ_res_viewmodel.dart';
@@ -38,31 +37,31 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   // 1. Declare the plugin instance
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  //     FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications(); // Call the async setup function
+    // _initializeNotifications(); // Call the async setup function
   }
 
-  Future<void> _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  // Future<void> _initializeNotifications() async {
+  //   const AndroidInitializationSettings initializationSettingsAndroid =
+  //       AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    final InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+  //   final InitializationSettings initializationSettings =
+  //       InitializationSettings(android: initializationSettingsAndroid);
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  //   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    // Request notification permissions for Android 13+
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestPermission();
-  }
+  //   // Request notification permissions for Android 13+
+  //   await flutterLocalNotificationsPlugin
+  //       .resolvePlatformSpecificImplementation<
+  //         AndroidFlutterLocalNotificationsPlugin
+  //       >()
+  //       ?.requestPermission();
+  // }
 
   @override
   Widget build(BuildContext context) {

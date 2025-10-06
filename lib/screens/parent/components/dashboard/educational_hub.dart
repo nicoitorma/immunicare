@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
-import 'package:immunicare/constants/constants.dart';
 
 class EducationalHub extends StatefulWidget {
   const EducationalHub({super.key});
@@ -15,6 +13,7 @@ class _EducationalHubState extends State<EducationalHub> {
     return Card(
       color: Colors.white,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
             leading: Icon(Icons.info, color: Colors.blue),
@@ -31,7 +30,11 @@ class _EducationalHubState extends State<EducationalHub> {
             ),
           ),
           Divider(),
-          Gap(appPadding),
+          TextButton(
+            onPressed:
+                () => Navigator.pushNamed(context, '/educational_resources'),
+            child: Text('Access Resources'),
+          ),
         ],
       ),
     );

@@ -7,7 +7,7 @@ import 'package:immunicare/models/analytic_info_model.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_cards.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_info_card.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
-import 'package:immunicare/screens/components/dashboard/users_by_device.dart';
+import 'package:immunicare/screens/components/dashboard/overall_vaccination_ratio_card.dart';
 import 'package:immunicare/screens/parent/components/dashboard/reminder.dart';
 import 'package:provider/provider.dart';
 
@@ -82,11 +82,13 @@ class _DashboardContentState extends State<DashboardContent> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(flex: 2, child: Reminders()),
+                                  Expanded(flex: 2, child: RemindersCard()),
                                   if (!Responsive.isMobile(context))
                                     Gap(appPadding),
                                   if (!Responsive.isMobile(context))
-                                    Expanded(child: UsersByDevice()),
+                                    Expanded(
+                                      child: OverallVaccinationRatioCard(),
+                                    ),
                                 ],
                               ),
                             ],
@@ -94,7 +96,9 @@ class _DashboardContentState extends State<DashboardContent> {
                         ),
                       ],
                     ),
-                    if (Responsive.isMobile(context)) UsersByDevice(),
+                    Gap(appPadding),
+                    if (Responsive.isMobile(context))
+                      OverallVaccinationRatioCard(),
                   ],
                 ),
               ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +15,14 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  AuthViewModel? auth;
+
+  @override
+  void initState() {
+    super.initState();
+
+    auth = Provider.of<AuthViewModel>(context, listen: false);
+  }
 
   @override
   void dispose() {
@@ -41,10 +48,10 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.local_hospital_rounded,
-            size: iconSize,
-            color: primaryColor,
+          Image.asset(
+            'assets/icons/immunicare.png',
+            width: iconSize,
+            height: iconSize,
           ),
           const Gap(16),
           Text(
@@ -158,7 +165,23 @@ class _LoginPageState extends State<LoginPage> {
                   const Gap(16),
                   TextButton(
                     onPressed: () {
-                      // Handle "Forgot Password" functionality
+                      if (_emailController.text.isNotEmpty) {
+                        auth?.auth.sendPasswordResetEmail(
+                          email: _emailController.text,
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Password reset link sent to email.'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter your email first.'),
+                          ),
+                        );
+                      }
                     },
                     child: const Text('Forgot Password?'),
                   ),
