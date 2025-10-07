@@ -14,7 +14,8 @@ class HealthWorkerViewmodel extends ChangeNotifier {
   String? result;
   String? errorMessage;
 
-  Future getAllHealthWorker() async {
+  Future getAllHealthWorkers() async {
+    print('here');
     try {
       final snapshot = await _firestore.collection('users').get();
       _health_workers =

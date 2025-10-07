@@ -98,18 +98,18 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> signUp({
+    required UserCredential userCredential,
     required UserModel user,
-    required String password,
   }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final userCredential = await _authService.signUpWithEmailAndPassword(
-        email: user.email,
-        password: password,
-      );
+      // final userCredential = await _authService.signUpWithEmailAndPassword(
+      //   email: user.email,
+      //   password: password,
+      // );
 
       if (userCredential.user != null) {
         _firestore

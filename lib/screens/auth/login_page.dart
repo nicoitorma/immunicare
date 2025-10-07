@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
+import 'package:immunicare/models/user_model.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -90,6 +92,23 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
           },
+          actions: [
+            AuthStateChangeAction<UserCreated>((context, state) {
+              UserModel newUser = UserModel(
+                id: state.credential.user!.uid,
+                lastname: '',
+                firstname: '',
+                email: state.credential.user?.email ?? '',
+                address: '',
+                role: 'parent',
+                createdAt: Timestamp.fromDate(DateTime.now()),
+              );
+              authViewModel?.signUp(
+                userCredential: state.credential,
+                user: newUser,
+              );
+            }),
+          ],
           subtitleBuilder: (context, action) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),

@@ -343,7 +343,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
       listen: false,
     );
 
-    healthWorkerProv?.getAllHealthWorker();
+    healthWorkerProv?.getAllHealthWorkers();
   }
 
   @override
@@ -414,6 +414,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                       );
                                     },
                                   ),
+                                  const DataColumn(label: Text('Email')),
                                   const DataColumn(label: Text('Role')),
                                   const DataColumn(label: Text('Created')),
                                   const DataColumn(label: Text('Action')),
@@ -425,6 +426,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                           DataCell(Text(user.lastname)),
                                           DataCell(Text(user.firstname)),
                                           DataCell(Text(user.address)),
+                                          DataCell(Text(user.email)),
                                           DataCell(
                                             Text(
                                               user.role == 'parent'

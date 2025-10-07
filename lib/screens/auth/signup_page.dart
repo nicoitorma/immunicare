@@ -41,7 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
         role: 'parent',
         createdAt: Timestamp.fromDate(DateTime.now()),
       );
-      authViewModel.signUp(user: newUser, password: _passwordController.text);
+      // authViewModel.signUp(user: newUser, password: _passwordController.text);
     }
   }
 
