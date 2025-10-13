@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/models/child_model.dart';
 import 'package:immunicare/models/user_model.dart';
+import 'package:immunicare/services/notification_service.dart';
 
 class ChildViewModel extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -88,10 +89,7 @@ class ChildViewModel extends ChangeNotifier {
   Future getAllParents() async {
     try {
       final QuerySnapshot usersSnapshot =
-          await _firestore
-              .collection('users')
-              .where('role', isEqualTo: 'parent')
-              .get();
+          await _firestore.collection('users').get();
 
       _parents =
           usersSnapshot.docs.map((doc) {
@@ -100,6 +98,8 @@ class ChildViewModel extends ChangeNotifier {
               doc.id,
             );
           }).toList();
+
+      _parents.removeWhere((user) => user.role == 'super_admin');
 
       notifyListeners();
     } catch (e) {
@@ -365,31 +365,68 @@ class ChildViewModel extends ChangeNotifier {
     String lastName,
     String firstName,
     DateTime dob,
+    String barangay,
   ) async {
     try {
       // Generate the vaccine schedule based on the child's date of birth
       final schedule = _generateVaccineSchedule(dob);
-      await _firestore.collection('users').doc(uid).collection('children').add({
-        'lastname': lastName,
-        'firstname': firstName,
-        'dob': Timestamp.fromDate(dob),
-        'schedule': schedule,
-      });
+      final docRef = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('children')
+          .add({
+            'lastname': lastName,
+            'firstname': firstName,
+            'dob': Timestamp.fromDate(dob),
+            'schedule': schedule,
+            'createdAt': FieldValue.serverTimestamp(),
+            'barangay': barangay,
+          });
+      final String childDocId = docRef.id;
 
-      childrenByParentId[uid]?.add(
-        Child(
-          id: '', // ID will be empty until fetched again
-          lastname: lastName,
-          parentId: uid,
-          firstname: firstName,
-          dateOfBirth: Timestamp.fromDate(dob),
-          schedule: schedule,
-        ),
+      // 4. Schedule Notifications for all 'upcoming' vaccines
+      await _scheduleUpcomingVaccineNotifications(
+        childName: firstName,
+        childDocId: childDocId,
+        schedule: schedule,
       );
+
+      getChildrenByParentId(uid);
+      notifyListeners();
     } catch (e) {
       print('Error adding child: $e');
     }
     notifyListeners();
+  }
+
+  Future<void> _scheduleUpcomingVaccineNotifications({
+    required String childName,
+    required String childDocId,
+    required List<Map<String, dynamic>> schedule,
+  }) async {
+    // Generate a base ID from the document ID hash.
+    // We limit the hash size to avoid overflow and use it as a unique prefix.
+    final int childBaseId = childDocId.hashCode.abs() % 1000000;
+    int notificationIndex = 0;
+
+    for (var ageGroup in schedule) {
+      for (var vaccine in ageGroup['vaccines']) {
+        if (vaccine['status'] == 'upcoming' || vaccine['status'] == 'due') {
+          final String vaccineName = vaccine['name'];
+          final DateTime dueDate = (vaccine['date'] as Timestamp).toDate();
+          final int notificationId = (childBaseId * 100) + notificationIndex;
+
+          await NotificationService().scheduleVaccinationReminder(
+            id: notificationId,
+            childName: childName,
+            vaccinationName: vaccineName,
+            scheduleDate: dueDate,
+          );
+
+          notificationIndex++;
+        }
+      }
+    }
   }
 
   /**
@@ -429,13 +466,13 @@ class ChildViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  double _calculateComplianceForList() {
-    if (children.isEmpty) return 0.0;
+  double _calculateComplianceForList(List<Child> childrenList) {
+    if (childrenList.isEmpty) return 0.0;
 
     int totalCompleted = 0;
     int totalScheduled = 0;
 
-    for (var childItem in children) {
+    for (var childItem in childrenList) {
       for (var ageGroup in childItem.schedule) {
         if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
           for (var vaccine in ageGroup['vaccines']) {
@@ -456,8 +493,130 @@ class ChildViewModel extends ChangeNotifier {
     return (totalCompleted / totalScheduled) * 100;
   }
 
+  /// Returns a list of unique barangay names from all registered children.
+  List<String> getUniqueBarangays() {
+    if (_children.isEmpty) return [];
+    // Assuming 'barangay' field exists on Child model
+    return _children
+        .map((child) => child.barangay)
+        .where((b) => b.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  /// Counts the total number of children registered in a specific barangay.
+  int getTotalChildrenByBarangay(String barangayName) {
+    if (_children.isEmpty || barangayName.isEmpty) return 0;
+    return _children
+        .where(
+          (child) => child.barangay.toLowerCase() == barangayName.toLowerCase(),
+        )
+        .length;
+  }
+
+  /// Counts the number of children in a barangay that are fully vaccinated.
+  int getFullyVaccinatedCountByBarangay(String barangayName) {
+    if (_children.isEmpty || barangayName.isEmpty) return 0;
+
+    final filteredChildren =
+        _children
+            .where(
+              (child) =>
+                  child.barangay.toLowerCase() == barangayName.toLowerCase(),
+            )
+            .toList();
+
+    return filteredChildren
+        .where((child) => _isChildFullyVaccinated(child))
+        .length;
+  }
+
+  /// Counts the number of children in a barangay that are NOT fully vaccinated.
+  int getIncompletelyVaccinatedCountByBarangay(String barangayName) {
+    if (_children.isEmpty || barangayName.isEmpty) return 0;
+
+    final filteredChildren =
+        _children
+            .where(
+              (child) =>
+                  child.barangay.toLowerCase() == barangayName.toLowerCase(),
+            )
+            .toList();
+
+    // Count where the child is NOT fully vaccinated (i.e., has at least one due/upcoming vaccine)
+    return filteredChildren
+        .where((child) => !_isChildFullyVaccinated(child))
+        .length;
+  }
+
+  /// Counts the total number of vaccines marked 'due' in a specific barangay.
+  int getTotalOverdueByBarangay(String barangayName) {
+    if (_children.isEmpty || barangayName.isEmpty) return 0;
+
+    final filteredChildren =
+        _children
+            .where(
+              (child) =>
+                  child.barangay.toLowerCase() == barangayName.toLowerCase(),
+            )
+            .toList();
+
+    int overdueCount = 0;
+    for (var childItem in filteredChildren) {
+      for (var ageGroup in childItem.schedule) {
+        if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+          for (var vaccine in ageGroup['vaccines']) {
+            if (vaccine is Map<String, dynamic> && vaccine['status'] == 'due') {
+              overdueCount++;
+            }
+          }
+        }
+      }
+    }
+    return overdueCount;
+  }
+
+  double getComplianceScoreByBarangay(String barangayName) {
+    if (_children.isEmpty || barangayName.isEmpty) return 0.0;
+
+    // Filter the master list of children by the specified barangay name.
+    final filteredChildren =
+        _children.where((child) {
+          // Assuming Child model has a 'barangay' property
+          return child.barangay.toLowerCase() == barangayName.toLowerCase();
+        }).toList();
+
+    return _calculateComplianceForList(filteredChildren);
+  }
+
+  /// Helper to check if a single child has completed ALL vaccines in their schedule.
+  bool _isChildFullyVaccinated(Child child) {
+    if (child.schedule.isEmpty) return false;
+
+    for (var ageGroup in child.schedule) {
+      if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
+        for (var vaccine in ageGroup['vaccines']) {
+          if (vaccine is Map<String, dynamic> &&
+              vaccine['status'] != 'complete') {
+            // Found at least one vaccine that is not complete
+            return false;
+          }
+        }
+      }
+    }
+    // All vaccines checked are complete
+    return true;
+  }
+
   /// Calculates the overall vaccination compliance across ALL fetched children.
   double get overallComplianceScore {
-    return _calculateComplianceForList();
+    return _calculateComplianceForList(children);
+  }
+
+  /// Create notification services for vaccination schedules
+  Future<void> createNotificationService() async {
+    // Notification scheduling logic
+
+    notifyListeners();
   }
 }

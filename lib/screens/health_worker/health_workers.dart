@@ -22,224 +22,6 @@ class _HealthWorkersState extends State<HealthWorkers> {
   // State variables for sorting
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
-  // bool _isSaving = false;
-
-  // Widget _firstnameField() {
-  //   return TextFormField(
-  //     controller: _firstnameController,
-  //     decoration: InputDecoration(
-  //       labelText: 'Firstname',
-  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-  //       prefixIcon: const Icon(Icons.person_outline),
-  //       prefixIconColor: primaryColor,
-  //     ),
-  //   );
-  // }
-
-  // Widget _lastnameField() {
-  //   return TextFormField(
-  //     controller: _lastnameController,
-  //     decoration: InputDecoration(
-  //       labelText: 'Lastname',
-  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-  //       prefixIcon: const Icon(Icons.person_outline),
-  //       prefixIconColor: primaryColor,
-  //     ),
-  //   );
-  // }
-
-  // void _addUserDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder:
-  //         (context) => Dialog(
-  //           backgroundColor: Colors.white,
-  //           child: ConstrainedBox(
-  //             constraints: BoxConstraints(maxWidth: 600),
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(appPadding),
-  //               child: Column(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   if (Responsive.isDesktop(context))
-  //                     Row(
-  //                       children: [
-  //                         Expanded(child: _firstnameField()),
-  //                         Gap(appPadding),
-  //                         Expanded(child: _lastnameField()),
-  //                       ],
-  //                     ),
-  //                   if (Responsive.isMobile(context)) _firstnameField(),
-  //                   Gap(appPadding),
-  //                   if (Responsive.isMobile(context)) _lastnameField(),
-  //                   Gap(appPadding),
-  //                   DropdownMenu<String>(
-  //                     label: Text('Address'),
-  //                     width: double.infinity,
-  //                     controller: _addressController,
-  //                     leadingIcon: const Icon(
-  //                       Icons.location_on_outlined,
-  //                       color: primaryColor,
-  //                     ),
-  //                     inputDecorationTheme: InputDecorationTheme(
-  //                       border: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(12),
-  //                       ),
-  //                     ),
-  //                     dropdownMenuEntries:
-  //                         barangays.map<DropdownMenuEntry<String>>((
-  //                           String value,
-  //                         ) {
-  //                           return DropdownMenuEntry<String>(
-  //                             value: value,
-  //                             label: value,
-  //                           );
-  //                         }).toList(),
-  //                   ),
-  //                   Gap(appPadding),
-  //                   TextFormField(
-  //                     controller: _emailController,
-  //                     decoration: InputDecoration(
-  //                       labelText: 'Email',
-  //                       border: OutlineInputBorder(
-  //                         borderRadius: BorderRadius.circular(12),
-  //                       ),
-  //                       prefixIcon: const Icon(Icons.email_outlined),
-  //                       prefixIconColor: primaryColor,
-  //                     ),
-  //                   ),
-  //                   Gap(appPadding),
-  //                   Text('Notes: '),
-  //                   Text('\t -Password will be generated randomly.'),
-  //                   Text(
-  //                     '\t -Confirmation link will be sent to the provided email.',
-  //                   ),
-  //                   Gap(appPadding),
-  //                   Padding(
-  //                     padding: const EdgeInsets.symmetric(
-  //                       horizontal: 16,
-  //                       vertical: 16,
-  //                     ),
-  //                     child: Row(
-  //                       mainAxisAlignment: MainAxisAlignment.end,
-  //                       children: [
-  //                         ElevatedButton(
-  //                           onPressed: () {
-  //                             Navigator.pop(context);
-  //                           },
-  //                           style: ElevatedButton.styleFrom(
-  //                             backgroundColor: Colors.blue[500],
-  //                             foregroundColor: Colors.white,
-  //                             shape: RoundedRectangleBorder(
-  //                               borderRadius: BorderRadius.circular(20),
-  //                             ),
-  //                             padding: const EdgeInsets.symmetric(
-  //                               horizontal: 12,
-  //                               vertical: 6,
-  //                             ),
-  //                           ),
-  //                           child: Text('Cancel'),
-  //                         ),
-  //                         const Gap(appPadding),
-  //                         ElevatedButton(
-  //                           onPressed: () async {
-  //                             UserModel health_worker = UserModel(
-  //                               lastname: _lastnameController.text.trim(),
-  //                               firstname: _firstnameController.text.trim(),
-  //                               email: _emailController.text.trim(),
-  //                               address: _addressController.text.trim(),
-  //                               role: 'health_worker',
-  //                               createdAt: Timestamp.fromDate(DateTime.now()),
-  //                             );
-
-  //                             String randomPassword =
-  //                                 AuthService().generateRandomPassword();
-  //                             await healthWorkerProv?.createNewAccount(
-  //                               health_worker,
-  //                               randomPassword,
-  //                             );
-  //                             if (healthWorkerProv?.result != null) {
-  //                               showDialog(
-  //                                 barrierDismissible: false,
-  //                                 context: context,
-  //                                 builder:
-  //                                     (context) => AlertDialog(
-  //                                       backgroundColor: Colors.white,
-  //                                       title: Text('Sign in details'),
-  //                                       content: Column(
-  //                                         mainAxisSize: MainAxisSize.min,
-  //                                         children: [
-  //                                           Text(
-  //                                             'Email: ${health_worker.email}',
-  //                                           ),
-  //                                           Gap(8),
-  //                                           Text('Password: $randomPassword'),
-  //                                         ],
-  //                                       ),
-  //                                       actions: [
-  //                                         TextButton(
-  //                                           onPressed: () {
-  //                                             _firstnameController.clear();
-  //                                             _lastnameController.clear();
-  //                                             _addressController.clear();
-  //                                             _emailController.clear();
-  //                                             Navigator.of(context).pop();
-  //                                           },
-  //                                           child: const Text('OK'),
-  //                                         ),
-  //                                       ],
-  //                                     ),
-  //                               );
-  //                             }
-  //                             if (healthWorkerProv?.errorMessage != null) {
-  //                               showDialog(
-  //                                 context: context,
-  //                                 builder:
-  //                                     (context) => AlertDialog(
-  //                                       title: Text('Error creating account!'),
-  //                                       content: Text(
-  //                                         healthWorkerProv!.errorMessage!,
-  //                                       ),
-  //                                       actions: [
-  //                                         TextButton(
-  //                                           onPressed: () {
-  //                                             // Dismiss the dialog when the user clicks 'OK'
-  //                                             Navigator.of(context).pop();
-  //                                           },
-  //                                           child: const Text('OK'),
-  //                                         ),
-  //                                       ],
-  //                                     ),
-  //                               );
-  //                             }
-  //                           },
-  //                           style: ElevatedButton.styleFrom(
-  //                             backgroundColor: Colors.green,
-  //                             foregroundColor: Colors.white,
-  //                             shape: RoundedRectangleBorder(
-  //                               borderRadius: BorderRadius.circular(20),
-  //                             ),
-  //                             padding: const EdgeInsets.symmetric(
-  //                               horizontal: 12,
-  //                               vertical: 6,
-  //                             ),
-  //                           ),
-  //                           child:
-  //                               _isSaving
-  //                                   ? CircularProgressIndicator()
-  //                                   : Text('Save'),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //   );
-  // }
 
   void _deleteUser(UserModel user) {
     showDialog(
@@ -366,7 +148,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                       children: [
                         CustomAppbar(),
                         Text(
-                          'Health Workers',
+                          'User Management',
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         if (value.filteredHealthWorkers.isEmpty)
@@ -423,8 +205,20 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                     value.filteredHealthWorkers.map((user) {
                                       return DataRow(
                                         cells: [
-                                          DataCell(Text(user.lastname)),
-                                          DataCell(Text(user.firstname)),
+                                          DataCell(
+                                            Text(
+                                              user.lastname == ''
+                                                  ? 'N/A'
+                                                  : user.lastname,
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Text(
+                                              user.firstname == ''
+                                                  ? 'N/A'
+                                                  : user.firstname,
+                                            ),
+                                          ),
                                           DataCell(Text(user.address)),
                                           DataCell(Text(user.email)),
                                           DataCell(

@@ -44,8 +44,8 @@ dependencies:
   latlong2: ^0.9.1
   flutter_map_geojson:
   flutter_login: ^6.0.0
-  # flutter_local_notifications:
-  # geocoding: ^2.2.1
+  flutter_local_notifications:
+  timezone:
 
 dev_dependencies:
   flutter_launcher_icons: "^0.14.4"

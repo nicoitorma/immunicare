@@ -22,7 +22,6 @@ class RemindersCard extends StatelessWidget {
             child: const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                // Display a loading indicator or a message
                 child: Text(
                   'Loading children data or no children registered...',
                 ),
@@ -93,7 +92,7 @@ class RemindersCard extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                height: 120, // Provides good vertical spacing for content
+                height: 120,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: ListTile(
@@ -106,7 +105,6 @@ class RemindersCard extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      // Format the Firestore Timestamp to a readable date string
                       dueDateString,
                       style: TextStyle(color: Colors.grey[600]),
                     ),

@@ -64,22 +64,20 @@ class DrawerMenu extends StatelessWidget {
                       context,
                     ).pushNamed('/educational_resources'),
               ),
-              DrawerListTile(
-                title: 'Statistics',
-                svgSrc: 'assets/icons/Statistics.svg',
-                tap: () {},
-              ),
               if (value.role == 'super_admin')
                 DrawerListTile(
-                  title: 'GIS Mapping',
+                  title: 'GIS Data',
                   svgSrc: 'assets/icons/maps.svg',
-                  tap: () => Navigator.of(context).pushNamed('/gis_mapping'),
+                  tap:
+                      () =>
+                          Navigator.of(context).pushNamed('/gis_data_overview'),
                 ),
               if (value.role == 'super_admin')
                 DrawerListTile(
-                  title: 'Health workers',
+                  title: 'User management',
                   svgSrc: 'assets/icons/Subscribers.svg',
-                  tap: () => Navigator.of(context).pushNamed('/health_workers'),
+                  tap:
+                      () => Navigator.of(context).pushNamed('/user_management'),
                 ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: appPadding * 2),

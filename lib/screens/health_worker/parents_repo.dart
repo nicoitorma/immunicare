@@ -49,7 +49,7 @@ class _ParentsRepoState extends State<ParentsRepo> {
                           CustomAppbar(),
                           Gap(appPadding),
                           Text(
-                            'Children Registered',
+                            'Registered Children',
                             style: Theme.of(context).textTheme.headlineMedium!
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
@@ -140,7 +140,7 @@ class _ParentChildrenExpansionTileState
       ),
       collapsedBackgroundColor: const Color.fromARGB(179, 195, 218, 238),
       title: Text(
-        '${widget.parent.firstname} ${widget.parent.lastname}',
+        '${widget.parent.firstname == '' ? '<No firstname>' : widget.parent.firstname} ${widget.parent.lastname == '' ? '<No lastname>' : widget.parent.lastname}',
         style: TextStyle(color: Colors.black),
       ),
       subtitle:

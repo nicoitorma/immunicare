@@ -90,7 +90,12 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final doc =
           await _firestore.collection('users').doc(_currentUser!.uid).get();
-      _userdata = UserModel.fromMap(doc.data()!, _currentUser!.uid);
+
+      if (doc.exists) {
+        _userdata = UserModel.fromMap(doc.data()!, _currentUser!.uid);
+      } else {
+        _userdata = null;
+      }
     } catch (e) {
       print(e);
     }
@@ -150,7 +155,6 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> signOut() async {
     final prefs = await SharedPreferences.getInstance();
-    // Remove the UID
     await prefs.remove('uid');
     _role = '';
     _userdata = null;

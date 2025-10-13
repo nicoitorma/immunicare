@@ -22,8 +22,8 @@ class CustomAppbar extends StatelessWidget {
                     : null,
             icon: Icon(Icons.menu, color: textColor.withValues(alpha: 0.5)),
           ),
-        if (ModalRoute.of(context)!.settings.name == '/scheduled')
-          Expanded(child: SearchField()),
+        // if (ModalRoute.of(context)!.settings.name == '/scheduled')
+        //   Expanded(child: SearchField()),
         if (ModalRoute.of(context)!.settings.name == '/registered_children')
           Expanded(child: SearchField()),
         Row(

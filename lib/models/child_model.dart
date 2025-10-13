@@ -7,6 +7,7 @@ class Child {
   final Timestamp dateOfBirth;
   final String parentId;
   final List schedule;
+  final String barangay;
 
   Child({
     required this.id,
@@ -15,6 +16,7 @@ class Child {
     required this.dateOfBirth,
     required this.parentId,
     required this.schedule,
+    required this.barangay,
   });
 
   // Factory constructor to create a Child from Firestore document.
@@ -26,6 +28,7 @@ class Child {
       dateOfBirth: data['dob'] ?? '',
       parentId: data['parentId'] ?? '',
       schedule: data['schedule'] ?? [],
+      barangay: data['barangay'] ?? '',
     );
   }
 
@@ -37,6 +40,7 @@ class Child {
       'dob': dateOfBirth,
       'parentId': parentId,
       'schedule': schedule,
+      'barangay': barangay,
     };
   }
 }

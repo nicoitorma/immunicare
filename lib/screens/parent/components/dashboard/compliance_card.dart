@@ -66,11 +66,12 @@ class ComplianceCard extends StatelessWidget {
               ),
               const Gap(16),
               DropdownButton<String>(
+                dropdownColor: Colors.white,
                 style: TextStyle(overflow: TextOverflow.ellipsis),
                 value: value.child?.id ?? value.children.first.id,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
-                    // value.getChildById(newValue);
+                    value.getChildById(childId: newValue);
                   }
                 },
                 items:

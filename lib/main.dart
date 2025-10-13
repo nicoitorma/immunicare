@@ -17,12 +17,14 @@ import 'package:immunicare/screens/health_worker/dashboard_screen.dart';
 import 'package:immunicare/screens/health_worker/scheduled.dart';
 import 'package:immunicare/screens/parent/children_list.dart';
 import 'package:immunicare/screens/parent/dashboard.dart';
+import 'package:immunicare/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  NotificationService().init();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(MyApp());
@@ -127,11 +129,11 @@ class _MyAppState extends State<MyApp> {
           '/child_details': (context) => ChildRepo(),
           '/scheduled': (context) => Scheduled(),
           '/educational_resources': (context) => EducationalResources(),
-          '/health_workers': (context) => HealthWorkers(),
+          '/user_management': (context) => HealthWorkers(),
           '/profile': (context) => Profile(),
           '/parentDashboard': (context) => const ParentDashboard(),
           '/healthWorkerDashboard': (context) => const DashBoardScreen(),
-          '/gis_mapping': (context) => const GisMapping(),
+          '/gis_data_overview': (context) => const GisMapping(),
         },
       ),
     );
