@@ -50,6 +50,12 @@ class ProfileInfo extends StatelessWidget {
                         height: 38,
                         fit: BoxFit.cover,
                         'https://avatar.iran.liara.run/public',
+                        errorBuilder:
+                            (context, error, stackTrace) => Icon(
+                              Icons.account_circle,
+                              size: 38,
+                              color: textColor.withValues(alpha: 0.5),
+                            ),
                       ),
                       // : Image.network(
                       //   authViewModel.currentUser!.photoURL!,

@@ -94,19 +94,29 @@ class _LoginPageState extends State<LoginPage> {
           },
           actions: [
             AuthStateChangeAction<UserCreated>((context, state) {
-              UserModel newUser = UserModel(
-                id: state.credential.user!.uid,
-                lastname: '',
-                firstname: '',
-                email: state.credential.user?.email ?? '',
-                address: '',
-                role: 'parent',
-                createdAt: Timestamp.fromDate(DateTime.now()),
-              );
-              authViewModel?.signUp(
-                userCredential: state.credential,
-                user: newUser,
-              );
+              try {
+                UserModel newUser = UserModel(
+                  id: state.credential.user!.uid,
+                  lastname: '',
+                  firstname: '',
+                  email: state.credential.user?.email ?? '',
+                  address: '',
+                  role: 'parent',
+                  createdAt: Timestamp.fromDate(DateTime.now()),
+                );
+                authViewModel?.signUp(
+                  userCredential: state.credential,
+                  user: newUser,
+                );
+              } catch (e) {
+                // Delete authenticated user if user creation fails
+                state.credential.user?.delete();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error during sign up. Please try again.'),
+                  ),
+                );
+              }
             }),
           ],
           subtitleBuilder: (context, action) {

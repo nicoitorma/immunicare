@@ -32,6 +32,7 @@ class AuthViewModel extends ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
         await getUserData();
+        await fetchUserRole(user.uid);
       }
       print('Auth: complete');
       notifyListeners();
@@ -146,6 +147,8 @@ class AuthViewModel extends ChangeNotifier {
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
         _role = doc.data()?['role'] ?? '';
+      } else {
+        _role = 'null';
       }
       notifyListeners();
     } catch (e) {

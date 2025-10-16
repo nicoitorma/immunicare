@@ -31,7 +31,7 @@ class UserModel {
       address: data['address'] ?? '',
       role: data['role'] ?? '',
       pic: data['pic'] ?? '',
-      createdAt: data['createdAt'] ?? '',
+      createdAt: data['createdAt'] ?? Timestamp.now(),
     );
   }
 

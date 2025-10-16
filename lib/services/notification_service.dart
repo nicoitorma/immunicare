@@ -96,8 +96,8 @@ class NotificationService {
     // Otherwise, we schedule for 10:00 AM on the due date.
     final DateTime now = DateTime.now();
 
-    int targetHour = 13;
-    int targetMinute = 50;
+    int targetHour = 10;
+    int targetMinute = 00;
 
     // Check if the scheduled date is today
     if (scheduleDate.year == now.year &&

@@ -106,6 +106,15 @@ class _MyAppState extends State<MyApp> {
                       body: Center(child: CircularProgressIndicator()),
                     );
                   }
+                  if (value.role == 'null') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'User not found. Please contact support.',
+                        ),
+                      ),
+                    );
+                  }
 
                   // Once the role is not loading, render the appropriate screen.
                   final userRole = value.role;

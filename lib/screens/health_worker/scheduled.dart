@@ -37,6 +37,14 @@ class _ScheduledState extends State<Scheduled> {
                       child: Column(
                         children: [
                           CustomAppbar(),
+                          Text(
+                            'Overdue & Scheduled Vaccinations',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
                           Expanded(
                             child: ListView.builder(
                               shrinkWrap: true,
@@ -78,7 +86,7 @@ class _ScheduledState extends State<Scheduled> {
                                         ),
                                       ),
                                       const Text(
-                                        'Next Upcoming Vaccination',
+                                        'Next Vaccination',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
@@ -189,11 +197,19 @@ class _ScheduledState extends State<Scheduled> {
                                                       BorderRadius.circular(12),
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                value.markAsComplete(
-                                                  data['parentId'],
-                                                  data['child'],
-                                                  data['vaccine']['name'],
+                                              onPressed: () async {
+                                                final result = await value
+                                                    .markAsComplete(
+                                                      data['parentId'],
+                                                      data['child'],
+                                                      data['vaccine']['name'],
+                                                    );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(result),
+                                                  ),
                                                 );
                                               },
                                               child: const Text(
@@ -238,11 +254,19 @@ class _ScheduledState extends State<Scheduled> {
                                                           ),
                                                     );
                                                 if (newDate != null) {
-                                                  value.updateVaccineDate(
-                                                    data['parentId'],
-                                                    data['child'],
-                                                    data['vaccine']['name'],
-                                                    newDate,
+                                                  final result = await value
+                                                      .updateVaccineDate(
+                                                        data['parentId'],
+                                                        data['child'],
+                                                        data['vaccine']['name'],
+                                                        newDate,
+                                                      );
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(result),
+                                                    ),
                                                   );
                                                 }
                                               },

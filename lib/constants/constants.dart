@@ -34,7 +34,7 @@ final List<String> barangays = [
   'Iyao',
   'Mabini',
   'Maui',
-  'Maysuran',
+  'Maysuram',
   'Milaviga',
   'Panique',
   'Sabangan',

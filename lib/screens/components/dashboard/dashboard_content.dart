@@ -72,7 +72,7 @@ class _DashboardContentState extends State<DashboardContent> {
                                           '/scheduled',
                                         ),
                                     info: AnalyticInfo(
-                                      title: "Scheduled",
+                                      title: "Scheduled Vaccinations",
                                       count: value.scheduled.length,
                                       svgSrc: "assets/icons/syringe.svg",
                                       color: Colors.orange,

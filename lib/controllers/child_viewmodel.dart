@@ -149,7 +149,7 @@ class ChildViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> markAsComplete(
+  Future<String> markAsComplete(
     String parentUid,
     Child child,
     String vaccineName,
@@ -165,7 +165,7 @@ class ChildViewModel extends ChangeNotifier {
       final docSnapshot = await childDocRef.get();
       final childData = docSnapshot.data();
       if (childData == null || !childData.containsKey('schedule')) {
-        return;
+        return 'Schedule data not found for child: $childId';
       }
 
       List<dynamic> updatedSchedule = List.from(childData['schedule']);
@@ -191,12 +191,20 @@ class ChildViewModel extends ChangeNotifier {
           ...childData,
           'schedule': updatedSchedule,
         }, childId);
+        _scheduled.removeWhere(
+          (entry) =>
+              entry['child'].id == child.id &&
+              entry['vaccine']['name'] == vaccineName,
+        );
+
+        return '${vaccineName} vaccine for ${child.firstname} marked as complete.';
       }
     } catch (e) {
-      print('Error marking vaccine as complete: $e');
+      return 'Error marking vaccine as complete: $e';
     } finally {
       notifyListeners();
     }
+    return '${vaccineName} vaccine not found in schedule.';
   }
 
   Map<String, dynamic>? nextVaccine(Child child) {
@@ -245,7 +253,7 @@ class ChildViewModel extends ChangeNotifier {
     return schedule;
   }
 
-  Future<void> updateVaccineDate(
+  Future<String> updateVaccineDate(
     String parentUid,
     Child child,
     String vaccineName,
@@ -264,8 +272,11 @@ class ChildViewModel extends ChangeNotifier {
 
       if (childData == null || !childData.containsKey('schedule')) {
         print('Schedule data not found for child: $childId');
-        return;
+        return 'Schedule data not found for child: ${child.firstname}';
       }
+
+      final childBaseId = childId.hashCode.abs() % 1000000;
+      int notificationIndex = 0;
 
       List<dynamic> updatedSchedule = List.from(childData['schedule']);
       bool updated = false;
@@ -273,11 +284,23 @@ class ChildViewModel extends ChangeNotifier {
       for (var ageGroup in updatedSchedule) {
         if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
           for (var vaccine in ageGroup['vaccines']) {
-            if (vaccine is Map<String, dynamic> &&
-                vaccine['name'] == vaccineName) {
-              vaccine['date'] = Timestamp.fromDate(newDate);
-              updated = true;
-              break;
+            if (vaccine is Map<String, dynamic>) {
+              final notificationId = (childBaseId * 100) + notificationIndex;
+              notificationIndex++;
+
+              if (vaccine['name'] == vaccineName) {
+                vaccine['date'] = Timestamp.fromDate(newDate);
+                updated = true;
+
+                // Cancel and reschedule notifications
+                await NotificationService().cancelNotification(notificationId);
+                await NotificationService().scheduleVaccinationReminder(
+                  id: notificationId,
+                  childName: child.firstname,
+                  vaccinationName: vaccineName,
+                  scheduleDate: newDate,
+                );
+              }
             }
           }
         }
@@ -285,18 +308,37 @@ class ChildViewModel extends ChangeNotifier {
       }
 
       if (updated) {
+        // --- Update Firestore ---
         await childDocRef.update({'schedule': updatedSchedule});
-        getScheduledChildrenWithVaccines(DateTime.now());
+
+        // --- Update local state ---
+        for (var entry in _scheduled) {
+          if (entry['child'].id == child.id &&
+              entry['vaccine']['name'] == vaccineName) {
+            entry['vaccine']['date'] = Timestamp.fromDate(newDate);
+            break;
+          }
+        }
+        notifyListeners();
+
+        print(
+          'Vaccine date and status successfully updated for $vaccineName. Notification rescheduled.',
+        );
+        return 'Vaccine date for ${child.firstname} updated successfully.';
       } else {
-        print('Vaccine $vaccineName not found.');
+        print('Warning: Vaccine "$vaccineName" not found in schedule.');
       }
     } catch (e) {
       print('Error updating vaccine date: $e');
     }
+
+    return 'Vaccine "$vaccineName" not found in schedule for ${child.firstname}.';
   }
 
   Map<String, dynamic>? get nextVaccination {
-    if (_child?.id == null) return null;
+    if (_child?.id == null) {
+      _child = children.isNotEmpty ? children.first : null;
+    }
     final scheduleData = _child!.schedule;
     for (var ageGroup in scheduleData) {
       if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
@@ -377,6 +419,7 @@ class ChildViewModel extends ChangeNotifier {
           .add({
             'lastname': lastName,
             'firstname': firstName,
+            'parentId': uid,
             'dob': Timestamp.fromDate(dob),
             'schedule': schedule,
             'createdAt': FieldValue.serverTimestamp(),
@@ -434,33 +477,41 @@ class ChildViewModel extends ChangeNotifier {
      * It will be assigned to the _scheduled variable.
      */
   Future getScheduledChildrenWithVaccines(DateTime date) async {
-    _scheduled = [];
+    _scheduled.clear();
     childrenCount = 0;
 
     // Loop through each parent to correctly fetch and process their children
-    for (var child in _children) {
-      final scheduleData = child.schedule;
-      childrenCount += 1;
-      for (var ageGroup in scheduleData) {
-        if (ageGroup is Map<String, dynamic> && ageGroup['vaccines'] is List) {
-          for (var vaccine in ageGroup['vaccines']) {
-            if (vaccine is Map<String, dynamic> && vaccine['status'] == 'due') {
-              final vaccineDate = (vaccine['date'] as Timestamp).toDate();
-              if (vaccineDate.year == date.year &&
-                  vaccineDate.month == date.month) {
-                // Add a map containing the child, vaccine, and parentUid.
-                _scheduled.add({
-                  'child': child,
-                  'vaccine': vaccine,
-                  'parentId': child.parentId,
-                });
-                // We found a due vaccine, no need to check the rest for this child.
-                break;
+    try {
+      for (var child in _children) {
+        final scheduleData = child.schedule;
+        childrenCount += 1;
+        for (var ageGroup in scheduleData) {
+          if (ageGroup is Map<String, dynamic> &&
+              ageGroup['vaccines'] is List) {
+            for (var vaccine in ageGroup['vaccines']) {
+              if (vaccine is Map<String, dynamic> &&
+                  vaccine['status'] == 'due') {
+                final vaccineDate = (vaccine['date'] as Timestamp).toDate();
+
+                if ((vaccineDate.year == date.year &&
+                        vaccineDate.month == date.month) ||
+                    vaccineDate.isBefore(date)) {
+                  // Add a map containing the child, vaccine, and parentUid.
+                  _scheduled.add({
+                    'child': child,
+                    'vaccine': vaccine,
+                    'parentId': child.parentId,
+                  });
+                  // We found a due vaccine, no need to check the rest for this child.
+                  break;
+                }
               }
             }
           }
         }
       }
+    } catch (e) {
+      print('Error fetching scheduled children: $e');
     }
 
     notifyListeners();
