@@ -50,12 +50,6 @@ class DrawerMenu extends StatelessWidget {
                   }
                 },
               ),
-              if (value.role == 'health_worker')
-                DrawerListTile(
-                  title: 'Vaccination Records',
-                  svgSrc: 'assets/icons/syringe.svg',
-                  tap: () => Navigator.pushNamed(context, '/records'),
-                ),
               DrawerListTile(
                 title: 'Educational Resources',
                 svgSrc: 'assets/icons/BlogPost.svg',
@@ -64,7 +58,7 @@ class DrawerMenu extends StatelessWidget {
                       context,
                     ).pushNamed('/educational_resources'),
               ),
-              if (value.role == 'super_admin')
+              if (value.role == 'super_admin' || value.role == 'health_worker')
                 DrawerListTile(
                   title: 'GIS Data',
                   svgSrc: 'assets/icons/maps.svg',
@@ -72,7 +66,7 @@ class DrawerMenu extends StatelessWidget {
                       () =>
                           Navigator.of(context).pushNamed('/gis_data_overview'),
                 ),
-              if (value.role == 'super_admin')
+              if (value.role == 'super_admin' || value.role == 'health_worker')
                 DrawerListTile(
                   title: 'User management',
                   svgSrc: 'assets/icons/Subscribers.svg',
@@ -83,6 +77,14 @@ class DrawerMenu extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: appPadding * 2),
                 child: Divider(color: grey, thickness: 0.2),
               ),
+              if (value.role == 'parent')
+                DrawerListTile(
+                  title: 'Add Relatives',
+                  svgSrc: 'assets/icons/add_people.svg',
+                  tap: () {
+                    Navigator.of(context).pushNamed('/add_relatives');
+                  },
+                ),
               DrawerListTile(
                 title: 'Profile',
                 svgSrc: 'assets/icons/person.svg',

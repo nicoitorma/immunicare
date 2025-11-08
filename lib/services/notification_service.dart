@@ -90,38 +90,45 @@ class NotificationService {
     required String vaccinationName,
     required DateTime scheduleDate,
   }) async {
-    // TEMPORARY TEST MODIFICATION:
-    // If the schedule date is TODAY, we override the time to be 2 minutes from now.
-    // This allows immediate testing of the notification scheduling system.
-    // Otherwise, we schedule for 10:00 AM on the due date.
     final DateTime now = DateTime.now();
 
-    int targetHour = 10;
-    int targetMinute = 00;
-
-    // Check if the scheduled date is today
+    // If the schedule date is today, trigger notification 30 seconds from now
     if (scheduleDate.year == now.year &&
         scheduleDate.month == now.month &&
         scheduleDate.day == now.day) {
-      // Schedule 2 minutes into the future
-      targetHour = now.hour;
-      targetMinute = now.minute + 2;
+      final tz.TZDateTime scheduledTZDate = tz.TZDateTime.now(
+        tz.local,
+      ).add(Duration(seconds: 5));
+
+      await _notificationsPlugin.zonedSchedule(
+        id,
+        'Vaccination Due: ${vaccinationName}!',
+        'It\'s time for ${childName}\'s $vaccinationName. Tap to view details.',
+        scheduledTZDate,
+        _notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexact,
+        payload: '$childName:$vaccinationName',
+      );
+
+      print(
+        'Scheduled TEST reminder: $vaccinationName for child ID $id at $scheduledTZDate',
+      );
+      return;
     }
 
-    // Use TZDateTime for accurate scheduling in the local timezone (fixed to UTC+8)
+    // Otherwise schedule at 10:00 AM on the specified future date
     final tz.TZDateTime scheduledTZDate = tz.TZDateTime(
       tz.local,
       scheduleDate.year,
       scheduleDate.month,
       scheduleDate.day,
-      targetHour,
-      targetMinute,
+      10,
+      0,
     );
 
-    // Check if the scheduled time is in the future
     if (scheduledTZDate.isBefore(tz.TZDateTime.now(tz.local))) {
       print(
-        'Skipping $vaccinationName for $childName: calculated time $scheduledTZDate is in the past.',
+        'Skipping $vaccinationName for $childName because time $scheduledTZDate is already past.',
       );
       return;
     }
@@ -132,10 +139,10 @@ class NotificationService {
       'It\'s time for ${childName}\'s $vaccinationName. Tap to view details.',
       scheduledTZDate,
       _notificationDetails(),
-
       androidScheduleMode: AndroidScheduleMode.inexact,
       payload: '$childName:$vaccinationName',
     );
+
     print('Scheduled $vaccinationName for child ID $id on $scheduledTZDate');
   }
 

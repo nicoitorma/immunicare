@@ -20,15 +20,6 @@ class ProfileInfo extends StatelessWidget {
             children: [
               PopupMenuButton<String>(
                 color: Colors.white,
-                onSelected: (value) {
-                  if (value == 'profile') {
-                    // Handle profile click
-                    Navigator.pushNamed(context, '/profile');
-                  } else if (value == 'logout') {
-                    authViewModel.signOut();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  }
-                },
                 itemBuilder:
                     (context) => [
                       PopupMenuItem(
@@ -36,9 +27,17 @@ class ProfileInfo extends StatelessWidget {
                         child: Text('View Profile'),
                         onTap: () => Navigator.pushNamed(context, '/profile'),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'logout',
                         child: Text('Logout'),
+                        onTap: () async {
+                          await authViewModel.signOut();
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                            (route) => false,
+                          );
+                        },
                       ),
                     ],
                 child: Row(

@@ -22,6 +22,7 @@ class ChildrenList extends StatefulWidget {
 
 class _ChildrenListState extends State<ChildrenList> {
   bool _isScheduleExpanded = false;
+  String? role;
 
   void _showAddChildDialog(BuildContext context, ChildViewModel viewModel) {
     showDialog(
@@ -59,6 +60,13 @@ class _ChildrenListState extends State<ChildrenList> {
     final provider = Provider.of<ChildViewModel>(context, listen: false);
     final authProv = Provider.of<AuthViewModel>(context, listen: false);
     provider.getChildrenByParentId(authProv.currentUser?.uid ?? '');
+
+    role = authProv.role;
+    if (role == 'relative') {
+      provider.getChildrenByParentId(authProv.userdata?.parentId ?? '');
+    } else {
+      provider.getChildrenByParentId(provider.parentUid);
+    }
   }
 
   @override
@@ -110,12 +118,15 @@ class _ChildrenListState extends State<ChildrenList> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            shape: const CircleBorder(),
-            backgroundColor: primaryColor,
-            onPressed: () => _showAddChildDialog(context, viewModel),
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
+          floatingActionButton:
+              role == 'parent'
+                  ? FloatingActionButton(
+                    shape: const CircleBorder(),
+                    backgroundColor: primaryColor,
+                    onPressed: () => _showAddChildDialog(context, viewModel),
+                    child: const Icon(Icons.add, color: Colors.white),
+                  )
+                  : null,
         );
       },
     );

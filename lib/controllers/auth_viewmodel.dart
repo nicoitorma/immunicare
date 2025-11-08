@@ -94,6 +94,9 @@ class AuthViewModel extends ChangeNotifier {
 
       if (doc.exists) {
         _userdata = UserModel.fromMap(doc.data()!, _currentUser!.uid);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('address', _userdata!.address);
+        await prefs.setString('uid', _currentUser!.uid);
       } else {
         _userdata = null;
       }
@@ -147,6 +150,8 @@ class AuthViewModel extends ChangeNotifier {
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
         _role = doc.data()?['role'] ?? '';
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('role', _role);
       } else {
         _role = 'null';
       }

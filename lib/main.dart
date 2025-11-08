@@ -5,6 +5,7 @@ import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/controllers/health_worker/educ_res_viewmodel.dart';
 import 'package:immunicare/controllers/controller.dart';
 import 'package:immunicare/controllers/health_worker/health_worker_viewmodel.dart';
+import 'package:immunicare/controllers/relative_viewmodel.dart';
 import 'package:immunicare/screens/auth/login_page.dart';
 import 'package:immunicare/screens/auth/signup_page.dart';
 import 'package:immunicare/screens/components/profile.dart';
@@ -15,6 +16,7 @@ import 'package:immunicare/screens/health_worker/health_workers.dart';
 import 'package:immunicare/screens/health_worker/parents_repo.dart';
 import 'package:immunicare/screens/health_worker/dashboard_screen.dart';
 import 'package:immunicare/screens/health_worker/scheduled.dart';
+import 'package:immunicare/screens/parent/add_relatives.dart';
 import 'package:immunicare/screens/parent/children_list.dart';
 import 'package:immunicare/screens/parent/dashboard.dart';
 import 'package:immunicare/services/notification_service.dart';
@@ -74,6 +76,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => ChildViewModel()),
         ChangeNotifierProvider(create: (context) => EducResViewmodel()),
         ChangeNotifierProvider(create: (context) => HealthWorkerViewmodel()),
+        ChangeNotifierProvider(create: (context) => RelativeViewModel()),
       ],
       child: MaterialApp(
         title: 'ImmuniCare',
@@ -140,6 +143,7 @@ class _MyAppState extends State<MyApp> {
           '/educational_resources': (context) => EducationalResources(),
           '/user_management': (context) => HealthWorkers(),
           '/profile': (context) => Profile(),
+          '/add_relatives': (context) => const AddRelatives(),
           '/parentDashboard': (context) => const ParentDashboard(),
           '/healthWorkerDashboard': (context) => const DashBoardScreen(),
           '/gis_data_overview': (context) => const GisMapping(),

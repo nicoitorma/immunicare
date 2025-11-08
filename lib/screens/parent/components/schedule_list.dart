@@ -161,6 +161,10 @@ class _ScheduleListState extends State<ScheduleList> {
                                   //   ),
                                 ],
                               ),
+                              Gap(10),
+                              Text(
+                                'Administered by: ${vaccine['administeredBy'] ?? 'N/A'} on ${vaccine['administeredAt'] != null ? DateFormat('MMMM d, y h:m a').format(vaccine['administeredAt'].toDate()) : 'N/A'}',
+                              ),
                             ],
                           ),
                         ),

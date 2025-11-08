@@ -32,8 +32,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _submitSignUp() {
     if (_formKey.currentState!.validate()) {
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      UserModel newUser = UserModel(
+      UserModel(
         lastname: _lastNameController.text.trim(),
         firstname: _firstNameController.text.trim(),
         email: _emailController.text.trim(),

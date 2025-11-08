@@ -7,6 +7,7 @@ import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/models/child_model.dart';
 import 'package:immunicare/models/user_model.dart';
 import 'package:immunicare/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChildViewModel extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -88,8 +89,13 @@ class ChildViewModel extends ChangeNotifier {
   /// Used in the parents_repo.dart to display all parents.
   Future getAllParents() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final address = await prefs.getString('address');
       final QuerySnapshot usersSnapshot =
-          await _firestore.collection('users').get();
+          await _firestore
+              .collection('users')
+              .where('address', isEqualTo: address)
+              .get();
 
       _parents =
           usersSnapshot.docs.map((doc) {
@@ -149,12 +155,13 @@ class ChildViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> markAsComplete(
-    String parentUid,
-    Child child,
-    String vaccineName,
-  ) async {
-    final childId = child.id;
+  Future<String> markAsComplete({
+    String? parentUid,
+    Child? child,
+    String? vaccineName,
+    String? administeredBy,
+  }) async {
+    final childId = child?.id;
     final childDocRef = _firestore
         .collection('users')
         .doc(parentUid)
@@ -177,6 +184,8 @@ class ChildViewModel extends ChangeNotifier {
             if (vaccine is Map<String, dynamic> &&
                 vaccine['name'] == vaccineName) {
               vaccine['status'] = 'complete';
+              vaccine['administeredBy'] = administeredBy;
+              vaccine['administeredAt'] = Timestamp.now();
               updated = true;
               break;
             }
@@ -190,14 +199,14 @@ class ChildViewModel extends ChangeNotifier {
         _child = Child.fromMap({
           ...childData,
           'schedule': updatedSchedule,
-        }, childId);
+        }, childId!);
         _scheduled.removeWhere(
           (entry) =>
-              entry['child'].id == child.id &&
+              entry['child'].id == child!.id &&
               entry['vaccine']['name'] == vaccineName,
         );
 
-        return '${vaccineName} vaccine for ${child.firstname} marked as complete.';
+        return '${vaccineName} vaccine for ${child!.firstname} marked as complete.';
       }
     } catch (e) {
       return 'Error marking vaccine as complete: $e';
@@ -424,6 +433,7 @@ class ChildViewModel extends ChangeNotifier {
             'schedule': schedule,
             'createdAt': FieldValue.serverTimestamp(),
             'barangay': barangay,
+            'status': 'active',
           });
       final String childDocId = docRef.id;
 

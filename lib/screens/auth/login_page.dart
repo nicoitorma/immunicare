@@ -83,6 +83,8 @@ class _LoginPageState extends State<LoginPage> {
       home: Center(
         child: SignInScreen(
           providers: [EmailAuthProvider()],
+          showAuthActionSwitch: false,
+          showPasswordVisibilityToggle: true,
           headerBuilder: (context, constraints, shrinkOffset) {
             return Padding(
               padding: const EdgeInsets.only(top: 15),

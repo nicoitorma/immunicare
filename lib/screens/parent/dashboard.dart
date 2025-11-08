@@ -28,8 +28,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
       final authProvider = Provider.of<AuthViewModel>(context, listen: false);
+      final role = authProvider.role;
       provider.parentUid = authProvider.currentUser?.uid ?? '';
-      provider.getChildrenByParentId(provider.parentUid);
+
+      if (role == 'relative') {
+        provider.getChildrenByParentId(authProvider.userdata?.parentId ?? '');
+      } else {
+        provider.getChildrenByParentId(provider.parentUid);
+      }
     });
   }
 

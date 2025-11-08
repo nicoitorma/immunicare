@@ -7,7 +7,10 @@ class Child {
   final Timestamp dateOfBirth;
   final String parentId;
   final List schedule;
+  final String? administeredBy;
+  final DateTime? administeredAt;
   final String barangay;
+  final String? status;
 
   Child({
     required this.id,
@@ -17,6 +20,9 @@ class Child {
     required this.parentId,
     required this.schedule,
     required this.barangay,
+    this.administeredBy,
+    this.administeredAt,
+    this.status,
   });
 
   // Factory constructor to create a Child from Firestore document.
@@ -29,6 +35,9 @@ class Child {
       parentId: data['parentId'] ?? '',
       schedule: data['schedule'] ?? [],
       barangay: data['barangay'] ?? '',
+      administeredBy: data['administeredBy'] ?? '',
+      administeredAt: (data['administeredAt'] as Timestamp?)?.toDate(),
+      status: data['status'] ?? '',
     );
   }
 
@@ -41,6 +50,9 @@ class Child {
       'parentId': parentId,
       'schedule': schedule,
       'barangay': barangay,
+      'administeredBy': administeredBy,
+      'administeredAt': FieldValue.serverTimestamp(),
+      'status': status,
     };
   }
 }

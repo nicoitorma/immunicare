@@ -8,7 +8,11 @@ class UserModel {
   final String address;
   final String email;
   final String? pic;
+  final String? pin;
+  final String? parentId;
   final Timestamp? createdAt;
+  final String? licenseNumber;
+  final List<String>? relatives;
 
   UserModel({
     this.id,
@@ -18,6 +22,10 @@ class UserModel {
     required this.address,
     required this.role,
     this.pic,
+    this.pin,
+    this.relatives,
+    this.parentId,
+    this.licenseNumber,
     this.createdAt,
   });
 
@@ -31,7 +39,38 @@ class UserModel {
       address: data['address'] ?? '',
       role: data['role'] ?? '',
       pic: data['pic'] ?? '',
+      relatives: List<String>.from(data['relatives'] ?? []),
+      pin: data['pin'] ?? '',
+      parentId: data['parentId'] ?? '',
+      licenseNumber: data['licenseNumber'] ?? '',
       createdAt: data['createdAt'] ?? Timestamp.now(),
+    );
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? firstname,
+    String? lastname,
+    String? email,
+    String? address,
+    String? role,
+    String? pin,
+    String? parentId,
+    String? licenseNumber,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      firstname: firstname ?? this.firstname,
+      lastname: lastname ?? this.lastname,
+      email: email ?? this.email,
+      address: address ?? this.address,
+      role: role ?? this.role,
+      licenseNumber: licenseNumber ?? this.licenseNumber,
+      pin: pin,
+      parentId: parentId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -45,6 +84,9 @@ class UserModel {
       'address': address,
       'role': role,
       'pic': pic,
+      'licenseNumber': licenseNumber,
+      'relatives': relatives,
+      'parentId': parentId,
       'createdAt': createdAt,
     };
   }

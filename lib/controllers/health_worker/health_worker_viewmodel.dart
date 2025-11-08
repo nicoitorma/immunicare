@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:immunicare/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HealthWorkerViewmodel extends ChangeNotifier {
   final _firestore = FirebaseFirestore.instance;
@@ -10,18 +12,34 @@ class HealthWorkerViewmodel extends ChangeNotifier {
   List<UserModel> get health_workers => _health_workers;
   List<UserModel> _filteredHealthWorkers = [];
   List<UserModel> get filteredHealthWorkers => _filteredHealthWorkers;
+  String address = '';
+  String role = '';
 
   String? result;
   String? errorMessage;
 
   Future getAllHealthWorkers() async {
-    print('here');
     try {
-      final snapshot = await _firestore.collection('users').get();
-      _health_workers =
-          snapshot.docs
-              .map((doc) => UserModel.fromMap(doc.data(), doc.id))
-              .toList();
+      final prefs = await SharedPreferences.getInstance();
+      role = prefs.getString('role') ?? '';
+      address = prefs.getString('address') ?? '';
+      if (role == 'super_admin') {
+        final snapshot = await _firestore.collection('users').get();
+        _health_workers =
+            snapshot.docs
+                .map((doc) => UserModel.fromMap(doc.data(), doc.id))
+                .toList();
+      } else {
+        final snapshot =
+            await _firestore
+                .collection('users')
+                .where('address', isEqualTo: address)
+                .get();
+        _health_workers =
+            snapshot.docs
+                .map((doc) => UserModel.fromMap(doc.data(), doc.id))
+                .toList();
+      }
       _filteredHealthWorkers = _health_workers;
       _filteredHealthWorkers.removeWhere((user) => user.role == 'super_admin');
     } catch (e) {
@@ -31,57 +49,80 @@ class HealthWorkerViewmodel extends ChangeNotifier {
     }
   }
 
-  Future createNewAccount(UserModel user, String password) async {
+  Future<String> createNewAccount(UserModel user, String password) async {
     try {
-      final auth = FirebaseAuth.instance;
-
-      auth
-          .createUserWithEmailAndPassword(email: user.email, password: password)
-          .then((newUser) async {
-            print('Created: ${newUser.user!.uid}');
-            try {
-              await _firestore
-                  .collection('users')
-                  .doc(newUser.user!.uid)
-                  .set(user.toMap());
-              _health_workers.add(user);
-              result = 'success';
-            } catch (e) {
-              newUser.user!.delete();
-              throw FirebaseAuthException(
-                code: 'failed-to-create-user',
-                message: 'Failed to create user.',
-              );
-            }
-            notifyListeners();
-          });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        errorMessage = 'An account already exists for that email.';
-      } else {
-        errorMessage = 'Sign up failed: ${e.message}';
+      //Create new account without signing in the created account
+      FirebaseApp app = await Firebase.initializeApp(
+        name: 'Secondary',
+        options: Firebase.app().options,
+      );
+      try {
+        await FirebaseAuth.instanceFor(app: app)
+            .createUserWithEmailAndPassword(
+              email: user.email,
+              password: password,
+            )
+            .then((value) async {
+              final newUser = user.copyWith(id: value.user!.uid);
+              try {
+                await _firestore
+                    .collection('users')
+                    .doc(value.user!.uid)
+                    .set(newUser.toMap());
+                return value;
+              } catch (e) {
+                value.user!.delete();
+                throw FirebaseAuthException(
+                  code: 'failed-to-create-user',
+                  message: 'Failed to create user.',
+                );
+              }
+            });
+        _health_workers.add(user);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          errorMessage = 'An account already exists for that email.';
+        } else {
+          errorMessage = 'Sign up failed: ${e.message}';
+        }
       }
+
+      await app.delete();
     } catch (e) {
-      debugPrint(e.toString());
+      errorMessage = e.toString();
     } finally {
       notifyListeners();
     }
+    return errorMessage ?? 'success';
   }
 
-  Future<void> editUser(UserModel user) async {
+  Future<String> updateUser(UserModel updatedUser) async {
     try {
-      await _firestore.collection('users').doc(user.id).update({
-        'role': user.role,
+      final docRef = _firestore.collection('users').doc(updatedUser.id);
+
+      await docRef.update({
+        'firstname': updatedUser.firstname,
+        'lastname': updatedUser.lastname,
+        'address': updatedUser.address,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      final index = _health_workers.indexWhere((doc) => doc.id == user.id);
+      // Update local list
+      final index = _health_workers.indexWhere(
+        (user) => user.id == updatedUser.id,
+      );
       if (index != -1) {
-        _health_workers[index] = user;
+        _health_workers[index] = updatedUser;
       }
-    } catch (e) {
-      debugPrint('Error editing educational resource: $e');
-    } finally {
+
       notifyListeners();
+      return 'success';
+    } on FirebaseException catch (e) {
+      debugPrint('Firestore updateUser error: ${e.message}');
+      return e.message ?? 'Firestore error occurred.';
+    } catch (e) {
+      debugPrint('updateUser error: $e');
+      return 'An unexpected error occurred.';
     }
   }
 

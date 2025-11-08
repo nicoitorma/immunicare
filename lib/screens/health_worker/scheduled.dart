@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
+import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
+import 'package:immunicare/models/user_model.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
 import 'package:immunicare/screens/components/dashboard/drawer_menu.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +19,17 @@ class Scheduled extends StatefulWidget {
 }
 
 class _ScheduledState extends State<Scheduled> {
+  UserModel? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<AuthViewModel>(context, listen: false);
+      userData = provider.userdata;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ChildViewModel>(
@@ -200,9 +213,19 @@ class _ScheduledState extends State<Scheduled> {
                                               onPressed: () async {
                                                 final result = await value
                                                     .markAsComplete(
-                                                      data['parentId'],
-                                                      data['child'],
-                                                      data['vaccine']['name'],
+                                                      parentUid:
+                                                          data['parentId'],
+                                                      child: data['child'],
+                                                      vaccineName:
+                                                          data['vaccine']['name'],
+                                                      administeredBy:
+                                                          userData!.lastname +
+                                                          ' ' +
+                                                          userData!.firstname +
+                                                          ' (' +
+                                                          userData!
+                                                              .licenseNumber! +
+                                                          ')',
                                                     );
                                                 ScaffoldMessenger.of(
                                                   context,

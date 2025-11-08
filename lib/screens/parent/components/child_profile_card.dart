@@ -21,7 +21,10 @@ class ChildProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color:
+            ageDisplay == 12
+                ? Color.fromARGB(255, 228, 229, 231)
+                : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -82,6 +85,16 @@ class ChildProfileCard extends StatelessWidget {
               Text(
                 ageDisplay,
                 style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+              ),
+              Text(
+                selectedChild.status ?? '',
+                style: TextStyle(
+                  fontSize: 14,
+                  color:
+                      selectedChild.status == 'active'
+                          ? Colors.green
+                          : Colors.red,
+                ),
               ),
             ],
           ),

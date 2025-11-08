@@ -131,7 +131,7 @@ class _ParentChildrenExpansionTileState
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
+    return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadiusGeometry.circular(10),
       ),
@@ -151,17 +151,6 @@ class _ParentChildrenExpansionTileState
               )
               : null,
       textColor: Colors.black,
-      onExpansionChanged: (isExpanded) {
-        setState(() {
-          _isExpanded = isExpanded;
-        });
-        if (isExpanded) {
-          Provider.of<ChildViewModel>(
-            context,
-            listen: false,
-          ).getChildrenByParentId(widget.parent.id ?? '');
-        }
-      },
       children: [
         if (_isExpanded)
           Consumer<ChildViewModel>(
