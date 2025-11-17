@@ -190,6 +190,43 @@ class _AddState extends State<AddRelatives> {
                                       int.tryParse(
                                         value.relatives[index].pin ?? '0',
                                       )!,
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            backgroundColor: Colors.white,
+                                            title: Text(
+                                              'Are you sure you want to remove ${value.relatives[index].firstname}?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  String result = await value
+                                                      .deleteExistingAccount(
+                                                        value.relatives[index],
+                                                      );
+                                                  Navigator.pop(context);
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(result),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Text('Confirm'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
                                 );
                               },
                             ),

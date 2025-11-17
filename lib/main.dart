@@ -13,6 +13,7 @@ import 'package:immunicare/screens/health_worker/child_repo.dart';
 import 'package:immunicare/screens/health_worker/educational_resources.dart';
 import 'package:immunicare/screens/health_worker/gis_mapping.dart';
 import 'package:immunicare/screens/health_worker/health_workers.dart';
+import 'package:immunicare/screens/health_worker/parent_children_list.dart';
 import 'package:immunicare/screens/health_worker/parents_repo.dart';
 import 'package:immunicare/screens/health_worker/dashboard_screen.dart';
 import 'package:immunicare/screens/health_worker/scheduled.dart';
@@ -111,11 +112,7 @@ class _MyAppState extends State<MyApp> {
                   }
                   if (value.role == 'null') {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'User not found. Please contact support.',
-                        ),
-                      ),
+                      const SnackBar(content: Text('User not found.')),
                     );
                   }
 
@@ -147,6 +144,7 @@ class _MyAppState extends State<MyApp> {
           '/parentDashboard': (context) => const ParentDashboard(),
           '/healthWorkerDashboard': (context) => const DashBoardScreen(),
           '/gis_data_overview': (context) => const GisMapping(),
+          '/children_list': (context) => const ParentChildrenList(),
         },
       ),
     );

@@ -3,7 +3,6 @@ import 'package:gap/gap.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
-import 'package:immunicare/models/user_model.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
 import 'package:immunicare/screens/components/dashboard/drawer_menu.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +48,7 @@ class _ParentsRepoState extends State<ParentsRepo> {
                           CustomAppbar(),
                           Gap(appPadding),
                           Text(
-                            'Registered Children',
+                            'Registered Parents',
                             style: Theme.of(context).textTheme.headlineMedium!
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
@@ -94,10 +93,92 @@ class _ParentsRepoState extends State<ParentsRepo> {
                                   value.filteredParents.isNotEmpty
                                       ? value.filteredParents[index]
                                       : value.parents[index];
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: _ParentChildrenExpansionTile(
-                                  parent: parent,
+
+                              final initials =
+                                  parent.firstname.isNotEmpty
+                                      ? parent.firstname[0].toUpperCase() +
+                                          parent.lastname[0].toUpperCase()
+                                      : '';
+                              return Card(
+                                color: Colors.white,
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.only(
+                                  bottom: 12.0,
+                                  left: 4,
+                                  right: 4,
+                                ),
+                                child: InkWell(
+                                  onTap:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        '/children_list',
+                                        arguments: parent,
+                                      ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.blue[300],
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              initials,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        const Gap(16),
+
+                                        // Parent Details (Center Section)
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                parent.firstname +
+                                                    ' ' +
+                                                    parent.lastname,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Color(
+                                                    0xFF1F2937,
+                                                  ), // gray-900
+                                                ),
+                                              ),
+                                              const Gap(2),
+                                              Text(
+                                                'Address: ${parent.address}, Caramoran',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               );
                             },
@@ -112,86 +193,6 @@ class _ParentsRepoState extends State<ParentsRepo> {
           ),
         );
       },
-    );
-  }
-}
-
-class _ParentChildrenExpansionTile extends StatefulWidget {
-  final UserModel parent;
-  const _ParentChildrenExpansionTile({required this.parent});
-
-  @override
-  State<_ParentChildrenExpansionTile> createState() =>
-      _ParentChildrenExpansionTileState();
-}
-
-class _ParentChildrenExpansionTileState
-    extends State<_ParentChildrenExpansionTile> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.circular(10),
-      ),
-      collapsedShape: RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.circular(10),
-      ),
-      collapsedBackgroundColor: const Color.fromARGB(179, 195, 218, 238),
-      title: Text(
-        '${widget.parent.firstname == '' ? '<No firstname>' : widget.parent.firstname} ${widget.parent.lastname == '' ? '<No lastname>' : widget.parent.lastname}',
-        style: TextStyle(color: Colors.black),
-      ),
-      subtitle:
-          widget.parent.address != ''
-              ? Text(
-                '${widget.parent.address}, Caramoran',
-                style: TextStyle(color: Colors.black),
-              )
-              : null,
-      textColor: Colors.black,
-      children: [
-        if (_isExpanded)
-          Consumer<ChildViewModel>(
-            builder: (context, childViewModel, _) {
-              // Retrieve the specific list of children for *this* parent ID
-              final children = childViewModel.getChildrenForParent(
-                widget.parent.id ?? '',
-              );
-
-              if (children.isEmpty) {
-                // Check for null or empty list. You might want to also check for a loading state.
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text('No children found for this parent.'),
-                  ),
-                );
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: children.length, // Use the specific children list
-                itemBuilder: (context, index) {
-                  final child = children[index];
-                  return Card(
-                    color: Color.fromARGB(179, 195, 218, 238),
-                    child: ListTile(
-                      title: Text('${child.firstname} ${child.lastname}'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        // Ensure your view model method can use the child's data even if it's from the map
-                        childViewModel.getChildById(childId: child.id);
-                        Navigator.pushNamed(context, '/child_details');
-                      },
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-      ],
     );
   }
 }

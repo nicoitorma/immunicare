@@ -266,6 +266,26 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             Gap(appPadding),
+                            TextFormField(
+                              readOnly: true,
+                              initialValue:
+                                  value.userdata?.role == 'super_admin'
+                                      ? 'Super Admin'
+                                      : value.userdata?.role == 'health_worker'
+                                      ? 'Health Worker'
+                                      : 'Parent',
+                              style: const TextStyle(color: Colors.black),
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.account_circle_rounded,
+                                ),
+                                prefixIconColor: primaryColor,
+                              ),
+                            ),
+                            Gap(appPadding),
                             Form(
                               key: _formKey,
                               child: Column(

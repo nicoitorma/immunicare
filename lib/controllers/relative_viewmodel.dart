@@ -99,4 +99,52 @@ class RelativeViewModel extends ChangeNotifier {
     }
     return errorMessage ?? 'success';
   }
+
+  Future deleteExistingAccount(UserModel existingUser) async {
+    String? result;
+
+    // Create a secondary Firebase app instance
+    FirebaseApp? secondaryApp;
+
+    try {
+      secondaryApp = await Firebase.initializeApp(
+        name: 'Secondary',
+        options: Firebase.app().options,
+      );
+
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      final userCredential = await secondaryAuth.signInWithEmailAndPassword(
+        email: existingUser.email,
+        password: existingUser.pin ?? '',
+      );
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await _firestore.collection('users').doc(currentUser.uid).update({
+          'relatives': FieldValue.arrayRemove([userCredential]),
+        });
+      }
+
+      await userCredential.user?.delete();
+      final index = relatives.indexWhere(
+        (user) => user.email == existingUser.email,
+      );
+      if (index != -1) {
+        relatives.removeAt(index);
+      }
+
+      result = 'success';
+    } on FirebaseAuthException catch (e) {
+      result = 'Auth error: ${e.message}';
+    } catch (e) {
+      result = 'Unexpected error: $e';
+    } finally {
+      if (secondaryApp != null) {
+        await secondaryApp.delete();
+      }
+      notifyListeners();
+    }
+
+    return result;
+  }
 }

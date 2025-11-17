@@ -5,6 +5,7 @@ import 'package:immunicare/constants/responsive.dart';
 import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/models/analytic_info_model.dart';
+import 'package:immunicare/models/user_model.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_cards.dart';
 import 'package:immunicare/screens/components/dashboard/analytic_info_card.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
@@ -22,6 +23,8 @@ class ParentDashboard extends StatefulWidget {
 }
 
 class _ParentDashboardState extends State<ParentDashboard> {
+  UserModel? parent;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +33,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
       final authProvider = Provider.of<AuthViewModel>(context, listen: false);
       final role = authProvider.role;
       provider.parentUid = authProvider.currentUser?.uid ?? '';
+      parent = authProvider.userdata;
 
       if (role == 'relative') {
         provider.getChildrenByParentId(authProvider.userdata?.parentId ?? '');
@@ -87,22 +91,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                               ),
                                             ),
                                             AnalyticInfoCard(
+                                              onPressed:
+                                                  () => Navigator.pushNamed(
+                                                    context,
+                                                    '/add_relatives',
+                                                  ),
                                               info: AnalyticInfo(
-                                                title:
-                                                    value
-                                                                .child
-                                                                ?.firstname
-                                                                .isNotEmpty ==
-                                                            true
-                                                        ? "${value.child?.firstname} Compliance rate (%)"
-                                                        : "Compliance Rate (%)",
-
+                                                title: 'Added Relatives',
                                                 count:
-                                                    (value.complianceScore *
-                                                            100)
-                                                        .round(),
+                                                    parent?.relatives?.length,
                                                 svgSrc:
-                                                    "assets/icons/Calendar.svg",
+                                                    "assets/icons/Subscribers.svg",
                                                 color: purple,
                                               ),
                                             ),

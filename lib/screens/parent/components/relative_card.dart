@@ -7,11 +7,13 @@ class RelativeCard extends StatelessWidget {
     required this.name,
     required this.email,
     required this.accessPin,
+    this.onTap,
   });
 
   final String name;
   final String email;
   final int accessPin;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +39,7 @@ class RelativeCard extends StatelessWidget {
             const Gap(16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                // Implement remove relative functionality
-              },
+              onPressed: onTap,
               child: const Text(
                 'Remove Relative',
                 style: TextStyle(color: Colors.white),

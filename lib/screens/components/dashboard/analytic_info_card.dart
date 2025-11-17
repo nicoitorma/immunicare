@@ -51,7 +51,7 @@ class AnalyticInfoCard extends StatelessWidget {
               ],
             ),
             Text(
-              info.title!,
+              info.title ?? '0',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(

@@ -308,6 +308,15 @@ class _DesktopLayoutState extends State<_DesktopLayout> {
                   nameCard(widget.viewModel),
                   const Gap(24),
                   UpcomingVaccinationCard(viewModel: widget.viewModel),
+                  // Gap(appPadding),
+                  // ElevatedButton(
+                  //   onPressed: () {},
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.red,
+                  //     foregroundColor: Colors.white,
+                  //   ),
+                  //   child: Text('Archive child'),
+                  // ),
                 ],
               ),
             ),

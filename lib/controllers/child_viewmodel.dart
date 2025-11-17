@@ -91,19 +91,34 @@ class ChildViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final address = await prefs.getString('address');
-      final QuerySnapshot usersSnapshot =
-          await _firestore
-              .collection('users')
-              .where('address', isEqualTo: address)
-              .get();
+      final role = await prefs.getString('role');
 
-      _parents =
-          usersSnapshot.docs.map((doc) {
-            return UserModel.fromMap(
-              doc.data() as Map<String, dynamic>,
-              doc.id,
-            );
-          }).toList();
+      if (role == 'super_admin') {
+        final QuerySnapshot usersSnapshot =
+            await _firestore.collection('users').get();
+
+        _parents =
+            usersSnapshot.docs.map((doc) {
+              return UserModel.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              );
+            }).toList();
+      } else {
+        final QuerySnapshot usersSnapshot =
+            await _firestore
+                .collection('users')
+                .where('address', isEqualTo: address)
+                .get();
+
+        _parents =
+            usersSnapshot.docs.map((doc) {
+              return UserModel.fromMap(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              );
+            }).toList();
+      }
 
       _parents.removeWhere((user) => user.role == 'super_admin');
 
@@ -114,22 +129,65 @@ class ChildViewModel extends ChangeNotifier {
     }
   }
 
-  /// Fetch all children across all parents
-  /// Used in the dashboard to calculate overall compliance score
-  Future getAllChildren() async {
+  /// Fetches all active children across all parents.
+  /// Automatically archives children older than 12 months who are not yet archived.
+  Future<List<Child>> getAllChildren() async {
     try {
-      final QuerySnapshot usersSnapshot =
+      // 1. Fetch all documents from the 'children' collection group
+      final QuerySnapshot childrenSnapshot =
           await _firestore.collectionGroup('children').get();
 
-      _children =
-          usersSnapshot.docs.map((doc) {
-            return Child.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-          }).toList();
+      // Define the cutoff time: 12 months ago
+      final now = DateTime.now().toUtc();
+      final oneYearAgo = now.subtract(const Duration(days: 365));
 
+      final List<Future<void>> archiveFutures = [];
+      final List<Child> fetchedChildren = [];
+
+      // 2. Iterate, check age, and queue archival updates
+      for (var doc in childrenSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final currentStatus = data['status'] ?? 'active';
+
+        // Ensure 'dob' exists and is a Timestamp
+        if (data.containsKey('dob') && data['dob'] is Timestamp) {
+          final Timestamp dobTimestamp = data['dob'] as Timestamp;
+          final DateTime dob = dobTimestamp.toDate().toUtc();
+
+          final bool isOlderThan12Months = dob.isBefore(oneYearAgo);
+
+          if (isOlderThan12Months && currentStatus != 'archived') {
+            // Child is older than 12 months and not yet archived.
+            // Queue an asynchronous update to archive this child.
+            final updateFuture = _firestore
+                .doc(doc.reference.path)
+                .update({'status': 'archived'})
+                .catchError((e) {
+                  print('Error archiving child ${doc.id}: $e');
+                });
+            archiveFutures.add(updateFuture);
+          }
+
+          // 3. Filter for active children and map to model
+          // ONLY add documents that are NOT 'archived' to the list returned.
+          if (currentStatus != 'archived') {
+            fetchedChildren.add(Child.fromMap(data, doc.id));
+          }
+        }
+      }
+
+      // Wait for all necessary archival updates to complete concurrently.
+      // This ensures the database is cleaned up efficiently.
+      await Future.wait(archiveFutures);
+
+      _children = fetchedChildren;
       notifyListeners();
+
       return children;
     } catch (e) {
-      print(e);
+      print('Error fetching children: $e');
+
+      // Return an empty list on failure
       return <Child>[];
     }
   }
