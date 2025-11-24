@@ -44,6 +44,7 @@ class _ParentsRepoState extends State<ParentsRepo> {
                       padding: EdgeInsets.all(appPadding),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomAppbar(),
                           Gap(appPadding),
@@ -82,6 +83,14 @@ class _ParentsRepoState extends State<ParentsRepo> {
                             ],
                           ),
                           Gap(appPadding),
+                          if (value.parents.length == 0 &&
+                              value.filteredParents.length == 0)
+                            Center(
+                              child: Text(
+                                textAlign: TextAlign.center,
+                                'No added Parents. Barangay Health Workers can add parents through User Management.',
+                              ),
+                            ),
                           ListView.builder(
                             shrinkWrap: true,
                             itemCount:

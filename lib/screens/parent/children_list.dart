@@ -63,6 +63,7 @@ class _ChildrenListState extends State<ChildrenList> {
 
     role = authProv.role;
     if (role == 'relative') {
+      print('Here');
       provider.getChildrenByParentId(authProv.userdata?.parentId ?? '');
     } else {
       provider.getChildrenByParentId(provider.parentUid);

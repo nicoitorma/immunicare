@@ -54,6 +54,7 @@ class _ParentChildrenListState extends State<ParentChildrenList> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Gap(10),
                       Text(
                         'Parent Personal Information',
                         style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -70,7 +71,7 @@ class _ParentChildrenListState extends State<ParentChildrenList> {
                           ),
                         ),
                         subtitle: Text(
-                          'Addres: ${parent?.address}, Caramoran\nEmail: ${parent?.email}',
+                          'Address: ${parent?.address}, Caramoran\nEmail: ${parent?.email}\nNumber of Children: ${value.children.length}',
                         ),
                       ),
                     ],

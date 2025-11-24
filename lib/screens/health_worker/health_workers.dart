@@ -51,7 +51,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
             ),
             ElevatedButton(
               onPressed: () {
-                healthWorkerProv?.deleteUser(user.id!);
+                healthWorkerProv?.deleteUser(user);
                 Navigator.of(context).pop();
               },
               child: Text('Delete'),
@@ -180,7 +180,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      labelText: 'License Number / ID Number',
+                      labelText: 'PRC Number / ID Number',
                     ),
                   ),
               ],
@@ -240,7 +240,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                 : 'parent',
                         createdAt: Timestamp.now(),
                       ),
-                      generatedPassword,
+                      'pass1234',
                     );
                     Navigator.of(context).pop();
                     if (result != 'success') {
@@ -459,8 +459,9 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                                       size: 18,
                                                     ),
                                                     color: Colors.red[600],
-                                                    onPressed:
-                                                        () => _deleteUser(user),
+                                                    onPressed: () {
+                                                      _deleteUser(user);
+                                                    },
                                                   ),
                                                 ],
                                               ),

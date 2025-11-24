@@ -59,8 +59,8 @@ class _DashboardContentState extends State<DashboardContent> {
                                           '/registered_children',
                                         ),
                                     info: AnalyticInfo(
-                                      title: "Children Registered",
-                                      count: value.children.length,
+                                      title: "Parents Registered",
+                                      count: value.parents.length,
                                       svgSrc: "assets/icons/Subscribers.svg",
                                       color: primaryColor,
                                     ),

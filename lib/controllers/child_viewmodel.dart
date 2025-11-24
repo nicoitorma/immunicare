@@ -121,6 +121,7 @@ class ChildViewModel extends ChangeNotifier {
       }
 
       _parents.removeWhere((user) => user.role == 'super_admin');
+      _parents.removeWhere((user) => user.role == 'health_worker');
 
       notifyListeners();
     } catch (e) {
@@ -133,23 +134,19 @@ class ChildViewModel extends ChangeNotifier {
   /// Automatically archives children older than 12 months who are not yet archived.
   Future<List<Child>> getAllChildren() async {
     try {
-      // 1. Fetch all documents from the 'children' collection group
       final QuerySnapshot childrenSnapshot =
           await _firestore.collectionGroup('children').get();
 
-      // Define the cutoff time: 12 months ago
       final now = DateTime.now().toUtc();
       final oneYearAgo = now.subtract(const Duration(days: 365));
 
       final List<Future<void>> archiveFutures = [];
       final List<Child> fetchedChildren = [];
 
-      // 2. Iterate, check age, and queue archival updates
       for (var doc in childrenSnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final currentStatus = data['status'] ?? 'active';
 
-        // Ensure 'dob' exists and is a Timestamp
         if (data.containsKey('dob') && data['dob'] is Timestamp) {
           final Timestamp dobTimestamp = data['dob'] as Timestamp;
           final DateTime dob = dobTimestamp.toDate().toUtc();
@@ -167,17 +164,12 @@ class ChildViewModel extends ChangeNotifier {
                 });
             archiveFutures.add(updateFuture);
           }
-
-          // 3. Filter for active children and map to model
-          // ONLY add documents that are NOT 'archived' to the list returned.
           if (currentStatus != 'archived') {
             fetchedChildren.add(Child.fromMap(data, doc.id));
           }
         }
       }
 
-      // Wait for all necessary archival updates to complete concurrently.
-      // This ensures the database is cleaned up efficiently.
       await Future.wait(archiveFutures);
 
       _children = fetchedChildren;
@@ -219,6 +211,7 @@ class ChildViewModel extends ChangeNotifier {
     String? vaccineName,
     String? administeredBy,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
     final childId = child?.id;
     final childDocRef = _firestore
         .collection('users')
@@ -253,6 +246,15 @@ class ChildViewModel extends ChangeNotifier {
       }
 
       if (updated) {
+        await _firestore.collection('vaccination_logs').add({
+          'administeredBy': administeredBy,
+          'health_worker_uid': prefs.getString('uid'),
+          'administeredAt': Timestamp.now(),
+          'vaccineName': vaccineName,
+          'child': child!.firstname + ' ' + child.lastname,
+          'childId': childId,
+        });
+
         await childDocRef.update({'schedule': updatedSchedule});
         _child = Child.fromMap({
           ...childData,
@@ -260,11 +262,11 @@ class ChildViewModel extends ChangeNotifier {
         }, childId!);
         _scheduled.removeWhere(
           (entry) =>
-              entry['child'].id == child!.id &&
+              entry['child'].id == child.id &&
               entry['vaccine']['name'] == vaccineName,
         );
 
-        return '${vaccineName} vaccine for ${child!.firstname} marked as complete.';
+        return '${vaccineName} vaccine for ${child.firstname} marked as complete.';
       }
     } catch (e) {
       return 'Error marking vaccine as complete: $e';
@@ -388,12 +390,9 @@ class ChildViewModel extends ChangeNotifier {
         }
         notifyListeners();
 
-        print(
-          'Vaccine date and status successfully updated for $vaccineName. Notification rescheduled.',
-        );
         return 'Vaccine date for ${child.firstname} updated successfully.';
       } else {
-        print('Warning: Vaccine "$vaccineName" not found in schedule.');
+        return 'Warning: Vaccine "$vaccineName" not found in schedule.';
       }
     } catch (e) {
       print('Error updating vaccine date: $e');
@@ -508,6 +507,23 @@ class ChildViewModel extends ChangeNotifier {
       print('Error adding child: $e');
     }
     notifyListeners();
+  }
+
+  Future<String> deleteChild(Child selectedChild) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(selectedChild.parentId)
+          .collection('children')
+          .doc(selectedChild.id)
+          .delete();
+      children.removeWhere((child) => selectedChild.id == child.id);
+    } catch (e) {
+      return 'Error deleting child.';
+    } finally {
+      notifyListeners();
+      return '${selectedChild.firstname} successfully deleted.';
+    }
   }
 
   Future<void> _scheduleUpcomingVaccineNotifications({

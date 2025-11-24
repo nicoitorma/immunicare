@@ -17,6 +17,7 @@ import 'package:immunicare/screens/health_worker/parent_children_list.dart';
 import 'package:immunicare/screens/health_worker/parents_repo.dart';
 import 'package:immunicare/screens/health_worker/dashboard_screen.dart';
 import 'package:immunicare/screens/health_worker/scheduled.dart';
+import 'package:immunicare/screens/health_worker/vaccination_logs.dart';
 import 'package:immunicare/screens/parent/add_relatives.dart';
 import 'package:immunicare/screens/parent/children_list.dart';
 import 'package:immunicare/screens/parent/dashboard.dart';
@@ -145,6 +146,7 @@ class _MyAppState extends State<MyApp> {
           '/healthWorkerDashboard': (context) => const DashBoardScreen(),
           '/gis_data_overview': (context) => const GisMapping(),
           '/children_list': (context) => const ParentChildrenList(),
+          '/vaccination_logs': (context) => VaccinationLogs(),
         },
       ),
     );

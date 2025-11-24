@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/constants/responsive.dart';
+import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/screens/components/dashboard/custom_appbar.dart';
 import 'package:immunicare/screens/components/dashboard/drawer_menu.dart';
@@ -19,6 +20,15 @@ class ChildRepo extends StatefulWidget {
 
 class _ChildRepoState extends State<ChildRepo> {
   bool _isScheduleExpanded = false;
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    final prov = Provider.of<AuthViewModel>(context, listen: false);
+    role = prov.role;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ChildViewModel>(
@@ -37,12 +47,15 @@ class _ChildRepoState extends State<ChildRepo> {
                       () => setState(
                         () => _isScheduleExpanded = !_isScheduleExpanded,
                       ),
+                  onReschedule: null,
+                  role: role,
                 ),
                 desktop: Row(
                   children: [
                     const DrawerMenu(),
                     Expanded(
                       child: _DesktopLayout(
+                        role: role,
                         viewModel: viewModel,
                         isExpanded: _isScheduleExpanded,
                         onExpand:
@@ -67,12 +80,14 @@ class _MobileLayout extends StatefulWidget {
   final bool isExpanded;
   final VoidCallback onExpand;
   final Function(String)? onReschedule;
+  final String? role;
 
   const _MobileLayout({
     required this.viewModel,
     required this.isExpanded,
     required this.onExpand,
     this.onReschedule,
+    this.role,
   });
 
   @override
@@ -86,7 +101,6 @@ class _MobileLayoutState extends State<_MobileLayout> {
 
     return Container(
       width: screenWidth,
-
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,76 +119,10 @@ class _MobileLayoutState extends State<_MobileLayout> {
     );
   }
 
-  Widget nameCard(ChildViewModel viewModel) {
-    final selectedChild = viewModel.child ?? viewModel.children.first;
-    final ageInMonths = viewModel.calculateAgeInMonths(
-      selectedChild.dateOfBirth,
-    );
-    final ageDisplay =
-        ageInMonths < 12
-            ? '$ageInMonths months'
-            : '${(ageInMonths / 12).floor()} years, ${ageInMonths % 12} months';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFFBFDBFE),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              selectedChild.firstname[0],
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1D4ED8),
-              ),
-            ),
-          ),
-          const Gap(16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${selectedChild.firstname} ${selectedChild.lastname}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              Text(
-                ageDisplay,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLayout(BuildContext context) {
     return Column(
       children: [
-        nameCard(widget.viewModel),
+        nameCard(context, widget.viewModel, widget.role ?? ''),
         const Gap(24),
         UpcomingVaccinationCard(viewModel: widget.viewModel),
         const Gap(24),
@@ -191,15 +139,123 @@ class _MobileLayoutState extends State<_MobileLayout> {
   }
 }
 
+Widget nameCard(BuildContext context, ChildViewModel viewModel, String role) {
+  final selectedChild = viewModel.child ?? viewModel.children.first;
+  final ageInMonths = viewModel.calculateAgeInMonths(selectedChild.dateOfBirth);
+  final ageDisplay =
+      ageInMonths < 12
+          ? '$ageInMonths months'
+          : '${(ageInMonths / 12).floor()} years, ${ageInMonths % 12} months';
+
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: const Color(0xFFEFF6FF),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(20),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: const Color(0xFFBFDBFE),
+            borderRadius: BorderRadius.circular(32),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            selectedChild.firstname[0],
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1D4ED8),
+            ),
+          ),
+        ),
+        const Gap(16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${selectedChild.firstname} ${selectedChild.lastname}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            Text(
+              ageDisplay,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            ),
+          ],
+        ),
+        Gap(10),
+        Expanded(
+          child: InkWell(
+            onTap: () {
+              if (role == 'super_admin' || role == 'health_worker') {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      backgroundColor: Colors.white,
+                      title: Text(
+                        'Are you sure to delete ${selectedChild.firstname}?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Cancel'),
+                        ),
+                        TextButton(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          onPressed: () async {
+                            String result = await viewModel.deleteChild(
+                              (selectedChild),
+                            );
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(result)));
+                            Navigator.pop(context);
+                          },
+                          child: Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+            child: Icon(Icons.delete, color: Colors.red),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _DesktopLayout extends StatefulWidget {
   final ChildViewModel viewModel;
   final bool isExpanded;
   final VoidCallback onExpand;
+  final String? role;
 
   const _DesktopLayout({
     required this.viewModel,
     required this.isExpanded,
     required this.onExpand,
+    this.role,
   });
 
   @override
@@ -230,72 +286,6 @@ class _DesktopLayoutState extends State<_DesktopLayout> {
     );
   }
 
-  Widget nameCard(ChildViewModel viewModel) {
-    final selectedChild = viewModel.child ?? viewModel.children.first;
-    final ageInMonths = viewModel.calculateAgeInMonths(
-      selectedChild.dateOfBirth,
-    );
-    final ageDisplay =
-        ageInMonths < 12
-            ? '$ageInMonths months'
-            : '${(ageInMonths / 12).floor()} year/s, ${ageInMonths % 12} months';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFFBFDBFE),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              selectedChild.firstname[0],
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1D4ED8),
-              ),
-            ),
-          ),
-          const Gap(16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${selectedChild.firstname} ${selectedChild.lastname}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              Text(
-                ageDisplay,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLayout(BuildContext context) {
     return Expanded(
       child: Row(
@@ -305,7 +295,7 @@ class _DesktopLayoutState extends State<_DesktopLayout> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  nameCard(widget.viewModel),
+                  nameCard(context, widget.viewModel, widget.role ?? ''),
                   const Gap(24),
                   UpcomingVaccinationCard(viewModel: widget.viewModel),
                   // Gap(appPadding),

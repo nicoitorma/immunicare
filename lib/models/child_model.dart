@@ -41,6 +41,18 @@ class Child {
     );
   }
 
+  Child copyWith({String? firstname, String? lastname}) {
+    return Child(
+      parentId: parentId,
+      schedule: schedule,
+      barangay: barangay,
+      id: id,
+      firstname: firstname ?? this.firstname,
+      lastname: lastname ?? this.lastname,
+      dateOfBirth: dateOfBirth,
+    );
+  }
+
   // Converts a Child object into a map for Firestore.
   Map<String, dynamic> toMap() {
     return {

@@ -85,6 +85,14 @@ class DrawerMenu extends StatelessWidget {
                 ),
               if (value.role == 'super_admin' || value.role == 'health_worker')
                 DrawerListTile(
+                  title: 'Vaccination Logs',
+                  svgSrc: 'assets/icons/BlogPost.svg',
+                  tap:
+                      () =>
+                          Navigator.of(context).pushNamed('/vaccination_logs'),
+                ),
+              if (value.role == 'super_admin' || value.role == 'health_worker')
+                DrawerListTile(
                   title: 'User management',
                   svgSrc: 'assets/icons/Subscribers.svg',
                   tap:

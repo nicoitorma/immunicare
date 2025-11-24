@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:immunicare/models/user_model.dart';
+import 'package:immunicare/models/vax_log.dart';
+import 'package:intl/intl.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HealthWorkerViewmodel extends ChangeNotifier {
@@ -12,6 +17,8 @@ class HealthWorkerViewmodel extends ChangeNotifier {
   List<UserModel> get health_workers => _health_workers;
   List<UserModel> _filteredHealthWorkers = [];
   List<UserModel> get filteredHealthWorkers => _filteredHealthWorkers;
+  List<VaxLog> _vaccination_logs = [];
+  List<VaxLog> get vaxLog => _vaccination_logs;
   String address = '';
   String role = '';
 
@@ -49,6 +56,66 @@ class HealthWorkerViewmodel extends ChangeNotifier {
     }
   }
 
+  Future getVaccinationLogs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final uid = prefs.getString('uid');
+      final snapshot =
+          await _firestore
+              .collection('vaccination_logs')
+              .where('health_worker_uid', isEqualTo: uid)
+              .get();
+      _vaccination_logs =
+          snapshot.docs.map((doc) => VaxLog.fromMap(doc.data())).toList();
+    } catch (e) {
+      print('Error fetching logs.');
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<Uint8List> exportVaxLog(String name) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        build:
+            (context) => [
+              pw.Text(
+                '${name} Vaccination Logs',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+
+              pw.Table.fromTextArray(
+                headers: [
+                  'Child name',
+                  'Vaccine',
+                  'Administered By',
+                  'Date and Time',
+                ],
+                data:
+                    vaxLog.map((log) {
+                      return [
+                        log.childName ?? '',
+                        log.vaccineName ?? '',
+                        log.administeredBy ?? '',
+                        DateFormat(
+                          'MMMM d, y, h:mm a',
+                        ).format(log.administeredAt.toDate()).toString(),
+                      ];
+                    }).toList(),
+              ),
+            ],
+      ),
+    );
+
+    return pdf.save();
+  }
+
   Future<String> createNewAccount(UserModel user, String password) async {
     try {
       //Create new account without signing in the created account
@@ -65,10 +132,12 @@ class HealthWorkerViewmodel extends ChangeNotifier {
             .then((value) async {
               final newUser = user.copyWith(id: value.user!.uid);
               try {
+                final userData = newUser.toMap();
+                userData['pin'] = password.toString();
                 await _firestore
                     .collection('users')
                     .doc(value.user!.uid)
-                    .set(newUser.toMap());
+                    .set(userData);
                 return value;
               } catch (e) {
                 value.user!.delete();
@@ -126,17 +195,32 @@ class HealthWorkerViewmodel extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteUser(String userId) async {
+  Future<void> deleteUser(UserModel user) async {
+    FirebaseApp? secondaryApp;
     try {
-      await _firestore.collection('users').doc(userId).delete();
-      final index = _health_workers.indexWhere((doc) => doc.id == userId);
+      await _firestore.collection('users').doc(user.id).delete();
+      secondaryApp = await Firebase.initializeApp(
+        name: 'Secondary',
+        options: Firebase.app().options,
+      );
+
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      final userCredential = await secondaryAuth.signInWithEmailAndPassword(
+        email: user.email,
+        password: user.pin ?? '',
+      );
+      await userCredential.user?.delete();
+      final index = _health_workers.indexWhere((doc) => doc.id == user.id);
 
       if (index != -1) {
         _health_workers.removeAt(index);
       }
     } catch (e) {
-      debugPrint(e.toString());
+      print(e.toString());
     } finally {
+      if (secondaryApp != null) {
+        await secondaryApp.delete();
+      }
       notifyListeners();
     }
   }

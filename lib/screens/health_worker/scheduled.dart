@@ -48,6 +48,7 @@ class _ScheduledState extends State<Scheduled> {
                     flex: 5,
                     child: SafeArea(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomAppbar(),
                           Text(
@@ -58,6 +59,12 @@ class _ScheduledState extends State<Scheduled> {
                               color: Colors.grey.shade800,
                             ),
                           ),
+                          if (value.scheduled.length == 0)
+                            Expanded(
+                              child: Center(
+                                child: Text('No Vaccination Scheduled.'),
+                              ),
+                            ),
                           Expanded(
                             child: ListView.builder(
                               shrinkWrap: true,
