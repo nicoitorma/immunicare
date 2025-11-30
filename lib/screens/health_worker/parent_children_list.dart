@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:immunicare/controllers/auth_viewmodel.dart';
 import 'package:immunicare/controllers/child_viewmodel.dart';
 import 'package:immunicare/models/user_model.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,7 @@ class ParentChildrenList extends StatefulWidget {
 
 class _ParentChildrenListState extends State<ParentChildrenList> {
   UserModel? parent;
+  String role = '';
 
   @override
   void initState() {
@@ -27,6 +29,8 @@ class _ParentChildrenListState extends State<ParentChildrenList> {
         final provider = Provider.of<ChildViewModel>(context, listen: false);
         provider.getChildrenByParentId(parent!.id!);
       }
+      final provider = Provider.of<AuthViewModel>(context, listen: false);
+      role = provider.role;
     });
   }
 
@@ -74,6 +78,49 @@ class _ParentChildrenListState extends State<ParentChildrenList> {
                           'Address: ${parent?.address}, Caramoran\nEmail: ${parent?.email}\nNumber of Children: ${value.children.length}',
                         ),
                       ),
+                      Gap(10),
+                      if (role == 'health_worker' || role == 'super_admin')
+                        TextButton(
+                          onPressed: () async {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  backgroundColor: Colors.white,
+                                  title: Text(
+                                    'Are you sure to delete ${parent!.firstname}?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      style: ElevatedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                      onPressed: () async {
+                                        String result = await value
+                                            .deleteParent(parent: parent!);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(content: Text(result)),
+                                        );
+                                        Navigator.pushReplacementNamed(
+                                          context,
+                                          '/registered_children',
+                                        );
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Text('Delete'),
+                        ),
                     ],
                   ),
                 ),

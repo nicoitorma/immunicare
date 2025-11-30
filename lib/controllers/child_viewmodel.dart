@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:immunicare/constants/constants.dart';
 import 'package:immunicare/models/child_model.dart';
@@ -524,6 +525,67 @@ class ChildViewModel extends ChangeNotifier {
       notifyListeners();
       return '${selectedChild.firstname} successfully deleted.';
     }
+  }
+
+  Future<String> deleteParent({required UserModel parent}) async {
+    try {
+      // Delete all children under the parent
+      final childrenSnapshot =
+          await _firestore
+              .collection('users')
+              .doc(parent.id)
+              .collection('children')
+              .get();
+      for (var doc in childrenSnapshot.docs) {
+        await doc.reference.delete();
+      }
+      // Delete the parent document
+      await _firestore.collection('users').doc(parent.id).delete();
+
+      await deleteExistingAccount(parent);
+
+      _parents.removeWhere((user) => user.id == parent.id);
+    } catch (e) {
+      return 'Error deleting parent.';
+    } finally {
+      notifyListeners();
+      return '${parent.firstname} successfully deleted.';
+    }
+  }
+
+  Future deleteExistingAccount(UserModel existingUser) async {
+    String? result;
+
+    // Create a secondary Firebase app instance
+    FirebaseApp? secondaryApp;
+
+    try {
+      secondaryApp = await Firebase.initializeApp(
+        name: 'Secondary',
+        options: Firebase.app().options,
+      );
+
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      final userCredential = await secondaryAuth.signInWithEmailAndPassword(
+        email: existingUser.email,
+        password: existingUser.pin ?? '',
+      );
+
+      await userCredential.user?.delete();
+
+      result = 'success';
+    } on FirebaseAuthException catch (e) {
+      result = 'Auth error: ${e.message}';
+    } catch (e) {
+      result = 'Unexpected error: $e';
+    } finally {
+      if (secondaryApp != null) {
+        await secondaryApp.delete();
+      }
+      notifyListeners();
+    }
+
+    return result;
   }
 
   Future<void> _scheduleUpcomingVaccineNotifications({

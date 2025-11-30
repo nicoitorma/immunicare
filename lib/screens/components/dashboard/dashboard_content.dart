@@ -26,6 +26,7 @@ class _DashboardContentState extends State<DashboardContent> {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
 
       await provider.getAllChildren();
+      await provider.getAllParents();
       provider.getScheduledChildrenWithVaccines(DateTime.now());
     });
   }
