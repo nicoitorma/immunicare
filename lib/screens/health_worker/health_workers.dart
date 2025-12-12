@@ -417,14 +417,20 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                             DataCell(Text(user.email)),
                                             DataCell(
                                               Text(
-                                                user.role == 'parent'
+                                                user.role == 'health_worker'
+                                                    ? 'Health Worker'
+                                                    : user.role == 'parent'
                                                     ? 'Parent'
-                                                    : 'Health Worker',
+                                                    : 'Relative',
                                                 style: TextStyle(
                                                   color:
-                                                      user.role == 'parent'
+                                                      user.role ==
+                                                              'health_worker'
+                                                          ? Colors.green
+                                                          : user.role ==
+                                                              'parent'
                                                           ? Colors.blue
-                                                          : Colors.green,
+                                                          : Colors.orange,
                                                 ),
                                               ),
                                             ),

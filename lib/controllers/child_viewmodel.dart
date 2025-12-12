@@ -131,6 +131,22 @@ class ChildViewModel extends ChangeNotifier {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchRelatives(List<String> ids) async {
+    if (ids.isEmpty) return [];
+
+    final firestore = FirebaseFirestore.instance;
+
+    final results = await Future.wait(
+      ids.map((id) async {
+        final doc = await firestore.collection("users").doc(id).get();
+        if (doc.exists) return doc.data()!;
+        return null;
+      }),
+    );
+    print(results);
+    return results.whereType<Map<String, dynamic>>().toList();
+  }
+
   /// Fetches all active children across all parents.
   /// Automatically archives children older than 12 months who are not yet archived.
   Future<List<Child>> getAllChildren() async {
