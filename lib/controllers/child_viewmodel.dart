@@ -123,6 +123,7 @@ class ChildViewModel extends ChangeNotifier {
 
       _parents.removeWhere((user) => user.role == 'super_admin');
       _parents.removeWhere((user) => user.role == 'health_worker');
+      _parents.removeWhere((user) => user.role == 'relative');
 
       notifyListeners();
     } catch (e) {
@@ -493,6 +494,16 @@ class ChildViewModel extends ChangeNotifier {
     String barangay,
   ) async {
     try {
+      final DateTime today = DateTime.now();
+
+      // Check if DOB is more than 1 year ago
+      final DateTime oneYearAgo = DateTime(
+        today.year - 1,
+        today.month,
+        today.day,
+      );
+
+      final String status = dob.isBefore(oneYearAgo) ? 'archived' : 'active';
       // Generate the vaccine schedule based on the child's date of birth
       final schedule = _generateVaccineSchedule(dob);
       final docRef = await _firestore
@@ -507,7 +518,7 @@ class ChildViewModel extends ChangeNotifier {
             'schedule': schedule,
             'createdAt': FieldValue.serverTimestamp(),
             'barangay': barangay,
-            'status': 'active',
+            'status': status,
           });
       final String childDocId = docRef.id;
 

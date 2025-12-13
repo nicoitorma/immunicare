@@ -242,7 +242,8 @@ class _AddState extends State<AddRelatives> {
             shape: const CircleBorder(),
             backgroundColor: primaryColor,
             onPressed: () {
-              if (relativeViewModel!.relatives.length >= 2) {
+              if (existingUser?.role == 'parent' &&
+                  relativeViewModel!.relatives.length >= 2) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('You can only add up to 2 relatives.'),
