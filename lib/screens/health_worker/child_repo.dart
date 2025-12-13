@@ -196,8 +196,20 @@ Widget nameCard(BuildContext context, ChildViewModel viewModel, String role) {
               ageDisplay,
               style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
             ),
+            Gap(10),
+            Text(
+              selectedChild.status ?? '',
+              style: TextStyle(
+                fontSize: 14,
+                color:
+                    selectedChild.status == 'active'
+                        ? Colors.green
+                        : Colors.red,
+              ),
+            ),
           ],
         ),
+
         Gap(10),
         Expanded(
           child: InkWell(
