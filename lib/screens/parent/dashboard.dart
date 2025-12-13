@@ -94,21 +94,22 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                                 color: primaryColor,
                                               ),
                                             ),
-                                            AnalyticInfoCard(
-                                              onPressed:
-                                                  () => Navigator.pushNamed(
-                                                    context,
-                                                    '/add_relatives',
-                                                  ),
-                                              info: AnalyticInfo(
-                                                title: 'Added Relatives',
-                                                count:
-                                                    parent?.relatives?.length,
-                                                svgSrc:
-                                                    "assets/icons/Subscribers.svg",
-                                                color: purple,
+                                            if (role == 'parent')
+                                              AnalyticInfoCard(
+                                                onPressed:
+                                                    () => Navigator.pushNamed(
+                                                      context,
+                                                      '/add_relatives',
+                                                    ),
+                                                info: AnalyticInfo(
+                                                  title: 'Added Relatives',
+                                                  count:
+                                                      parent?.relatives?.length,
+                                                  svgSrc:
+                                                      "assets/icons/Subscribers.svg",
+                                                  color: purple,
+                                                ),
                                               ),
-                                            ),
                                           ],
                                         ),
                                         Gap(appPadding),
