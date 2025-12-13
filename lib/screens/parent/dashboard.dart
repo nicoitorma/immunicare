@@ -24,6 +24,7 @@ class ParentDashboard extends StatefulWidget {
 
 class _ParentDashboardState extends State<ParentDashboard> {
   UserModel? parent;
+  String? role;
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ChildViewModel>(context, listen: false);
       final authProvider = Provider.of<AuthViewModel>(context, listen: false);
-      final role = authProvider.role;
+      role = authProvider.role;
       provider.parentUid = authProvider.currentUser?.uid ?? '';
       parent = authProvider.userdata;
 
@@ -83,7 +84,10 @@ class _ParentDashboardState extends State<ParentDashboard> {
                                                     '/children',
                                                   ),
                                               info: AnalyticInfo(
-                                                title: "My Children",
+                                                title:
+                                                    role == 'parent'
+                                                        ? 'My Children'
+                                                        : 'Children List',
                                                 count: value.children.length,
                                                 svgSrc:
                                                     "assets/icons/Subscribers.svg",

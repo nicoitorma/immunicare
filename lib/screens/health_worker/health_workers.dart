@@ -240,7 +240,7 @@ class _HealthWorkersState extends State<HealthWorkers> {
                                 : 'parent',
                         createdAt: Timestamp.now(),
                       ),
-                      generatedPassword,
+                      'pass1234',
                     );
                     Navigator.of(context).pop();
                     if (result != 'success') {

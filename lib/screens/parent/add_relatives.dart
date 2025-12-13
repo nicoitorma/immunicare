@@ -168,7 +168,7 @@ class _AddState extends State<AddRelatives> {
                           Expanded(
                             child: Center(
                               child: Text(
-                                'No Relatives added. Click the + button to add relatives.',
+                                'No Relatives added. Click the + button to add relatives for parent account.',
                                 style: Theme.of(context).textTheme.labelLarge,
                                 textAlign: TextAlign.center,
                               ),
@@ -238,23 +238,28 @@ class _AddState extends State<AddRelatives> {
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            shape: const CircleBorder(),
-            backgroundColor: primaryColor,
-            onPressed: () {
-              if (existingUser?.role == 'parent' &&
-                  relativeViewModel!.relatives.length >= 2) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('You can only add up to 2 relatives.'),
-                  ),
-                );
-                return;
-              }
-              _addRelative(existingUser!);
-            },
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
+          floatingActionButton:
+              (existingUser?.role == 'parent')
+                  ? FloatingActionButton(
+                    shape: const CircleBorder(),
+                    backgroundColor: primaryColor,
+                    onPressed: () {
+                      print(existingUser?.role);
+                      if (relativeViewModel!.relatives.length >= 2) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'You can only add up to 2 relatives.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      _addRelative(existingUser!);
+                    },
+                    child: const Icon(Icons.add, color: Colors.white),
+                  )
+                  : null,
         );
       },
     );
