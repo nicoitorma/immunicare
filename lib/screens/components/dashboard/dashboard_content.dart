@@ -22,12 +22,11 @@ class _DashboardContentState extends State<DashboardContent> {
   @override
   void initState() {
     super.initState();
+    final provider = Provider.of<ChildViewModel>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = Provider.of<ChildViewModel>(context, listen: false);
-
       await provider.getAllChildren();
       await provider.getAllParents();
-      provider.getScheduledChildrenWithVaccines(DateTime.now());
+      await provider.getScheduledChildrenWithVaccines(DateTime.now());
     });
   }
 

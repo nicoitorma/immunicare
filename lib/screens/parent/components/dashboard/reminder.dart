@@ -29,7 +29,14 @@ class RemindersCard extends StatelessWidget {
             ),
           );
         }
-        final selectedChildId = value.child?.id ?? value.children.first.id;
+        String? selectedChildId;
+
+        if (value.child != null &&
+            value.children.any((c) => c.id == value.child!.id)) {
+          selectedChildId = value.child!.id;
+        } else {
+          selectedChildId = value.children.first.id;
+        }
 
         // Only display the card if a child is actively selected
         final nextReminder = value.nextVaccination;
@@ -38,7 +45,6 @@ class RemindersCard extends StatelessWidget {
             nextReminder != null
                 ? DateFormat('MMMM d, y').format(nextReminder['date'].toDate())
                 : 'No Date Set';
-
         return Card(
           color: Colors.white,
           shape: RoundedRectangleBorder(
@@ -64,6 +70,7 @@ class RemindersCard extends StatelessWidget {
                   children: [
                     Text('Select Child:'),
                     Gap(appPadding),
+
                     DropdownButton<String>(
                       dropdownColor: Colors.white,
                       style: TextStyle(overflow: TextOverflow.ellipsis),

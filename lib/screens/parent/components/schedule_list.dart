@@ -103,36 +103,6 @@ class _ScheduleListState extends State<ScheduleList> {
                                       ),
                                     ),
                                   ),
-                                  const Gap(5),
-                                  if (vaccine['status'] == 'due')
-                                    if (widget.viewModel.parentUid.isEmpty)
-                                      Expanded(
-                                        child: TextButton(
-                                          onPressed:
-                                              () => widget.onMarkComplete!(
-                                                widget.viewModel.parentUid,
-                                                widget.viewModel.child,
-                                                vaccine['name'],
-                                              ),
-                                          style: TextButton.styleFrom(
-                                            backgroundColor: const Color(
-                                              0xFF22C55E,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Done',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  if (vaccine['status'] == 'due') const Gap(8),
                                   // if (vaccine['status'] == 'due')
                                   //   Expanded(
                                   //     child: TextButton(
